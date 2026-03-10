@@ -1,0 +1,55 @@
+# Compiled Object files
+*.o
+*.obj
+*.ko
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+jametlang
+
+# Build directories
+build/
+bin/
+dist/
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Dependency files
+*.d
+
+# Coverage files
+*.gcov
+*.gcda
+*.gcno
+
+# Package files
+*.tar.gz
+*.zip
