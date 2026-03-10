@@ -128,7 +128,7 @@ Ing mode REPL, sampeyan bisa nggunakake perintah khusus:
 | --------- | ----------------- |
 | `.help`   | Nampilake bantuan |
 | `.exit`   | Metu saka REPL    |
-| `.clear`  | Bersihna layar    |
+| `.busak`  | Bersihna layar    |
 | `.tokens` | Mode token debug  |
 
 ### Conto REPL Session

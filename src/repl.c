@@ -120,13 +120,13 @@ void repl_execute_line(const char *line) {
             printf("  .help    - Nampilake bantuan iki\n");
             printf("  .exit    - Metu saka REPL\n");
             printf("  .tokens  - Nampilake token stream\n");
-            printf("  .clear   - Bersihna layar\n");
+            printf("  .busak   - Bersihna layar\n");
             printf("\n--- Conto Perintah ---\n");
             printf("  variabel x = 10;\n");
             printf("  nek (x > 5) { nyerat(\"X gedhe\"); }\n");
             printf("  kanggo (i = 0; i < 10; i = i + 1) { }\n\n");
             return;
-        } else if (strcmp(line, ".clear") == 0) {
+        } else if (strcmp(line, ".busak") == 0) {
             printf("\033[2J\033[H");
             repl_print_welcome();
             return;
