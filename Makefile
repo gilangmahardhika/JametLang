@@ -22,6 +22,7 @@ TARGET_DEMO = $(BIN_DIR)/jametlang
 # Source files for CLI
 SOURCES_CLI = $(SRC_DIR)/jamet_types.c \
               $(SRC_DIR)/lexer.c \
+              $(SRC_DIR)/parser.c \
               $(SRC_DIR)/repl.c \
               $(SRC_DIR)/cli.c
 
@@ -33,6 +34,7 @@ SOURCES_DEMO = $(SRC_DIR)/jamet_types.c \
 # Object files for CLI
 OBJECTS_CLI = $(BUILD_DIR)/jamet_types_cli.o \
               $(BUILD_DIR)/lexer_cli.o \
+              $(BUILD_DIR)/parser.o \
               $(BUILD_DIR)/repl.o \
               $(BUILD_DIR)/cli.o
 
@@ -74,6 +76,10 @@ $(BUILD_DIR)/jamet_types_cli.o: $(SRC_DIR)/jamet_types.c
 
 $(BUILD_DIR)/lexer_cli.o: $(SRC_DIR)/lexer.c
 	@echo "Nggawe (Compiling) lexer.c..."
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/parser.o: $(SRC_DIR)/parser.c
+	@echo "Nggawe (Compiling) parser.c..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/repl.o: $(SRC_DIR)/repl.c

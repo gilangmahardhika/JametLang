@@ -4,6 +4,7 @@
  */
 
 #include "repl.h"
+#include "parser.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -164,8 +165,22 @@ void repl_execute_line(const char *line) {
     }
 
     if (!has_error) {
-        /* TODO: Implement parsing and evaluation */
-        printf("=> Sukses tokenizing (%zu token)\n", count - 1); /* -1 for EOF */
+        /* Parse and evaluate */
+        Parser *parser = parser_new(tokens, count);
+        size_t stmt_count;
+        Stmt **statements = parser_parse_program(parser, &stmt_count);
+
+        /* Execute statements */
+        for (size_t i = 0; i < stmt_count; i++) {
+            exec_stmt(statements[i]);
+        }
+
+        /* Free statements */
+        for (size_t i = 0; i < stmt_count; i++) {
+            stmt_free(statements[i]);
+        }
+        free(statements);
+        parser_free(parser);
     }
 
     lexer_free_tokens(tokens, count);
