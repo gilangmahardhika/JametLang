@@ -80,8 +80,8 @@ void repl_print_welcome(void) {
     printf("\\___//_/   \\_\\_|  |_|_____| |_|  \n");
     printf("                                          \n");
     printf("    Bahasa Pemrograman Basa Jawa          \n\n");
-    printf("  Ketik '.help' kanggo bantuan\n");
-    printf("  Ketik '.exit' utawa tekan Ctrl-D kanggo metu\n\n");
+    printf("  Ketik '.tulung' kanggo bantuan\n");
+    printf("  Ketik '.metu' utawa tekan Ctrl-D kanggo metu\n\n");
 }
 
 /* Print prompt */
@@ -114,13 +114,13 @@ void repl_print_tokens(Token *tokens, size_t count) {
 void repl_execute_line(const char *line) {
     /* Check for commands */
     if (line[0] == '.') {
-        if (strcmp(line, ".exit") == 0) {
+        if (strcmp(line, ".metu") == 0) {
             printf("Matur nuwun! Sampun jumpa!\n");
             exit(0);
-        } else if (strcmp(line, ".help") == 0) {
+        } else if (strcmp(line, ".tulung") == 0) {
             printf("\n--- Perintah JametLang REPL ---\n");
-            printf("  .help    - Nampilake bantuan iki\n");
-            printf("  .exit    - Metu saka REPL\n");
+            printf("  .tulung  - Nampilake bantuan iki\n");
+            printf("  .metu    - Metu saka REPL\n");
             printf("  .tokens  - Nampilake token stream\n");
             printf("  .busak   - Bersihna layar\n");
             printf("\n--- Conto Perintah ---\n");
@@ -140,7 +140,7 @@ void repl_execute_line(const char *line) {
             return;
         } else {
             printf("Perintah ora dikenal: %s\n", line);
-            printf("Ketik '.help' kanggo ndeleng perintah sing tersedia.\n");
+            printf("Ketik '.tulung' kanggo ndeleng perintah sing tersedia.\n");
             return;
         }
     }

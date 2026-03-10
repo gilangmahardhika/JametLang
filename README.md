@@ -126,8 +126,8 @@ Ing mode REPL, sampeyan bisa nggunakake perintah khusus:
 
 | Perintah  | Keterangan        |
 | --------- | ----------------- |
-| `.help`   | Nampilake bantuan |
-| `.exit`   | Metu saka REPL    |
+| `.tulung` | Nampilake bantuan |
+| `.metu`   | Metu saka REPL    |
 | `.busak`  | Bersihna layar    |
 | `.tokens` | Mode token debug  |
 
@@ -143,16 +143,19 @@ _  | | / _ \ | |\/| |  _|   | |
 
     Bahasa Pemrograman Basa Jawa
 
-  Ketik '.help' kanggo bantuan
-  Ketik '.exit' utawa tekan Ctrl-D kanggo metu
+  Ketik '.tulung' kanggo bantuan
+  Ketik '.metu' utawa tekan Ctrl-D kanggo metu
 
 jamet> variabel x = 10
-=> Sukses tokenizing (4 token)
+=> x = 10
 
-jamet> nek (x > 5) { nyerat("Gede"); }
-=> Sukses tokenizing (9 token)
+jamet> x + 5
+=> 15
 
-jamet> .exit
+jamet> nyerat("Halo");
+Halo
+
+jamet> .metu
 Matur nuwun! Sampun jumpa!
 ```
 

@@ -110,6 +110,30 @@ static int consume(Parser *parser, TokenType type, const char *message) {
     return 0;
 }
 
+/* Error recovery - synchronize to next statement boundary */
+static void synchronize(Parser *parser) {
+    advance(parser);
+    
+    while (!is_at_end(parser)) {
+        if (previous(parser)->type == TOKEN_SEMICOLON) return;
+        
+        switch (peek(parser)->type) {
+            case TOKEN_VARIABEL:
+            case TOKEN_NEK:
+            case TOKEN_KANGGO:
+            case TOKEN_SAWISE:
+            case TOKEN_BALEKNO:
+            case TOKEN_NYERAT:
+            case TOKEN_FUNGSI:
+                return;
+            default:
+                break;
+        }
+        
+        advance(parser);
+    }
+}
+
 /* Create literal expression */
 static Expr *make_literal_expr(JametValue *value) {
     Expr *expr = (Expr *)malloc(sizeof(Expr));
@@ -179,6 +203,40 @@ static Stmt *make_var_decl_stmt(Token name, Expr *initializer) {
     return stmt;
 }
 
+/* Create block statement */
+static Stmt *make_block_stmt(Stmt **statements, size_t count) {
+    Stmt *stmt = (Stmt *)malloc(sizeof(Stmt));
+    stmt->type = STMT_BLOCK;
+    stmt->as.block.statements = statements;
+    stmt->as.block.count = count;
+    return stmt;
+}
+
+/* Create if statement */
+static Stmt *make_if_stmt(Expr *condition, Stmt *then_branch, Stmt *else_branch) {
+    Stmt *stmt = (Stmt *)malloc(sizeof(Stmt));
+    stmt->type = STMT_IF;
+    stmt->as.if_stmt.condition = condition;
+    stmt->as.if_stmt.then_branch = then_branch;
+    stmt->as.if_stmt.else_branch = else_branch;
+    return stmt;
+}
+
+/* Create call expression */
+static Expr *make_call_expr(Expr *callee, Token paren, Expr **arguments, size_t count) {
+    Expr *expr = (Expr *)malloc(sizeof(Expr));
+    expr->type = EXPR_CALL;
+    expr->as.call.callee = callee;
+    expr->as.call.paren = paren;
+    expr->as.call.arguments = arguments;
+    expr->as.call.count = count;
+    return expr;
+}
+
+/* Forward declarations for recursive parsing */
+static Stmt *parse_statement(Parser *parser);
+static Stmt *parse_block(Parser *parser);
+
 /* Parse primary */
 static Expr *parse_primary(Parser *parser) {
     if (match(parser, TOKEN_INTEGER)) {
@@ -217,7 +275,31 @@ static Expr *parse_primary(Parser *parser) {
         return make_grouping_expr(expr);
     }
     if (match(parser, TOKEN_IDENTIFIER)) {
-        return make_variable_expr(*previous(parser));
+        Token name = *previous(parser);
+        
+        /* Check for function call */
+        if (match(parser, TOKEN_LPAREN)) {
+            Token paren = *previous(parser);
+            Expr **args = NULL;
+            size_t arg_count = 0;
+            size_t arg_capacity = 4;
+            
+            if (!check(parser, TOKEN_RPAREN)) {
+                args = (Expr **)malloc(sizeof(Expr *) * arg_capacity);
+                do {
+                    if (arg_count >= arg_capacity) {
+                        arg_capacity *= 2;
+                        args = (Expr **)realloc(args, sizeof(Expr *) * arg_capacity);
+                    }
+                    args[arg_count++] = parser_parse_expression(parser);
+                } while (match(parser, TOKEN_COMMA));
+            }
+            
+            consume(parser, TOKEN_RPAREN, "Expected ')' after arguments.");
+            return make_call_expr(make_variable_expr(name), paren, args, arg_count);
+        }
+        
+        return make_variable_expr(name);
     }
 
     fprintf(stderr, "Kesalahan: Token ora dikenal ing expression\n");
@@ -346,12 +428,75 @@ static Stmt *parse_var_declaration(Parser *parser) {
     return make_var_decl_stmt(name, initializer);
 }
 
+/* Parse block */
+static Stmt *parse_block(Parser *parser) {
+    size_t capacity = 8;
+    Stmt **statements = (Stmt **)malloc(sizeof(Stmt *) * capacity);
+    size_t count = 0;
+    
+    while (!check(parser, TOKEN_RBRACE) && !is_at_end(parser)) {
+        if (count >= capacity) {
+            capacity *= 2;
+            statements = (Stmt **)realloc(statements, sizeof(Stmt *) * capacity);
+        }
+        statements[count++] = parse_statement(parser);
+    }
+    
+    consume(parser, TOKEN_RBRACE, "Expected '}' after block.");
+    return make_block_stmt(statements, count);
+}
+
+/* Parse if statement (nek) */
+static Stmt *parse_if_statement(Parser *parser) {
+    consume(parser, TOKEN_LPAREN, "Expected '(' after 'nek'.");
+    Expr *condition = parser_parse_expression(parser);
+    consume(parser, TOKEN_RPAREN, "Expected ')' after condition.");
+    
+    Stmt *then_branch = parse_statement(parser);
+    Stmt *else_branch = NULL;
+    
+    if (match(parser, TOKEN_KAJABA)) {
+        else_branch = parse_statement(parser);
+    }
+    
+    return make_if_stmt(condition, then_branch, else_branch);
+}
+
+/* Parse print statement (nyerat) */
+static Stmt *parse_print_statement(Parser *parser) {
+    consume(parser, TOKEN_LPAREN, "Expected '(' after 'nyerat'.");
+    Expr *value = parser_parse_expression(parser);
+    consume(parser, TOKEN_RPAREN, "Expected ')' after value.");
+    consume(parser, TOKEN_SEMICOLON, "Expected ';' after nyerat statement.");
+    
+    /* Create a call expression for nyerat */
+    Token name_token = {TOKEN_IDENTIFIER, "nyerat", 1, 0};
+    Expr **args = (Expr **)malloc(sizeof(Expr *));
+    args[0] = value;
+    Expr *call = make_call_expr(make_variable_expr(name_token), name_token, args, 1);
+    return make_expr_stmt(call);
+}
+
 /* Parse statement */
-Stmt *parser_parse_statement(Parser *parser) {
+static Stmt *parse_statement(Parser *parser) {
     if (match(parser, TOKEN_VARIABEL)) {
         return parse_var_declaration(parser);
     }
+    if (match(parser, TOKEN_NEK)) {
+        return parse_if_statement(parser);
+    }
+    if (match(parser, TOKEN_NYERAT)) {
+        return parse_print_statement(parser);
+    }
+    if (match(parser, TOKEN_LBRACE)) {
+        return parse_block(parser);
+    }
     return parse_expr_statement(parser);
+}
+
+/* Public parse statement function */
+Stmt *parser_parse_statement(Parser *parser) {
+    return parse_statement(parser);
 }
 
 /* Parse program */
@@ -398,6 +543,13 @@ void expr_free(Expr *expr) {
             /* Don't free name.lexeme - owned by lexer tokens */
             expr_free(expr->as.assign.value);
             break;
+        case EXPR_CALL:
+            expr_free(expr->as.call.callee);
+            for (size_t i = 0; i < expr->as.call.count; i++) {
+                expr_free(expr->as.call.arguments[i]);
+            }
+            free(expr->as.call.arguments);
+            break;
         default:
             break;
     }
@@ -415,6 +567,17 @@ void stmt_free(Stmt *stmt) {
         case STMT_VAR_DECL:
             /* Don't free name.lexeme - owned by lexer tokens */
             expr_free(stmt->as.var_decl.initializer);
+            break;
+        case STMT_BLOCK:
+            for (size_t i = 0; i < stmt->as.block.count; i++) {
+                stmt_free(stmt->as.block.statements[i]);
+            }
+            free(stmt->as.block.statements);
+            break;
+        case STMT_IF:
+            expr_free(stmt->as.if_stmt.condition);
+            stmt_free(stmt->as.if_stmt.then_branch);
+            stmt_free(stmt->as.if_stmt.else_branch);
             break;
         default:
             break;
@@ -462,6 +625,35 @@ JametValue *eval_expr(Expr *expr) {
             JametValue *value = eval_expr(expr->as.assign.value);
             set_var(expr->as.assign.name.lexeme, jamet_value_copy(value));
             return value;
+        }
+
+        case EXPR_CALL: {
+            /* Handle built-in functions */
+            if (expr->as.call.callee->type == EXPR_VARIABLE) {
+                const char *name = expr->as.call.callee->as.variable.name.lexeme;
+                
+                /* nyerat (print) */
+                if (strcmp(name, "nyerat") == 0 && expr->as.call.count >= 1) {
+                    JametValue *arg = eval_expr(expr->as.call.arguments[0]);
+                    char *str = jamet_value_to_string(arg);
+                    printf("%s\n", str);
+                    free(str);
+                    jamet_value_free(arg);
+                    return jamet_value_new(JAMET_NONE);
+                }
+                
+                /* moco (read input) - placeholder */
+                if (strcmp(name, "moco") == 0) {
+                    char buffer[1024];
+                    if (fgets(buffer, sizeof(buffer), stdin)) {
+                        size_t len = strlen(buffer);
+                        if (len > 0 && buffer[len-1] == '\n') buffer[len-1] = '\0';
+                        return jamet_string_new(buffer);
+                    }
+                    return jamet_string_new("");
+                }
+            }
+            return jamet_value_new(JAMET_NONE);
         }
 
         case EXPR_BINARY: {
@@ -531,16 +723,34 @@ JametValue *eval_expr(Expr *expr) {
     }
 }
 
+/* Check if condition is truthy */
+static int is_truthy(JametValue *value) {
+    if (!value) return 0;
+    switch (value->type) {
+        case JAMET_NONE: return 0;
+        case JAMET_BOOLEAN: return value->as.boolean;
+        case JAMET_INTEGER: return value->as.integer != 0;
+        case JAMET_FLOAT: return value->as.float_val != 0.0;
+        case JAMET_STRING: return value->as.string.length > 0;
+        default: return 1;
+    }
+}
+
 /* Execute statement */
 void exec_stmt(Stmt *stmt) {
     if (!stmt) return;
 
     switch (stmt->type) {
         case STMT_EXPR: {
-            JametValue *value = eval_expr(stmt->as.expr.expression);
-            char *str = jamet_value_to_string(value);
-            printf("=> %s\n", str);
-            free(str);
+            Expr *expr = stmt->as.expr.expression;
+            JametValue *value = eval_expr(expr);
+            
+            /* Only print result if it's not a function call (like nyerat) */
+            if (expr->type != EXPR_CALL) {
+                char *str = jamet_value_to_string(value);
+                printf("=> %s\n", str);
+                free(str);
+            }
             jamet_value_free(value);
             break;
         }
@@ -552,8 +762,27 @@ void exec_stmt(Stmt *stmt) {
                 value = jamet_value_new(JAMET_NONE);
             }
             set_var(stmt->as.var_decl.name.lexeme, value);
-            printf("=> %s = %s\n", stmt->as.var_decl.name.lexeme,
-                   jamet_value_to_string(value));
+            char *str = jamet_value_to_string(value);
+            printf("=> %s = %s\n", stmt->as.var_decl.name.lexeme, str);
+            free(str);
+            break;
+        }
+        case STMT_BLOCK: {
+            for (size_t i = 0; i < stmt->as.block.count; i++) {
+                exec_stmt(stmt->as.block.statements[i]);
+            }
+            break;
+        }
+        case STMT_IF: {
+            JametValue *cond = eval_expr(stmt->as.if_stmt.condition);
+            int truthy = is_truthy(cond);
+            jamet_value_free(cond);
+            
+            if (truthy) {
+                exec_stmt(stmt->as.if_stmt.then_branch);
+            } else if (stmt->as.if_stmt.else_branch) {
+                exec_stmt(stmt->as.if_stmt.else_branch);
+            }
             break;
         }
         default:
