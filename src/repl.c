@@ -71,16 +71,11 @@ static const char *token_type_names[] = {
 /* Print welcome message */
 void repl_print_welcome(void) {
     printf("\n");
-    printf("   ___   __   __    _    ____   ____    _\n");
-    printf("  / _ \\  \\ \\ / /   / \\  / ___| / ___|  | |\n");
-    printf(" | | | |  \\ V /   / _ \\ \\___ \\| |  _   | |\n");
-    printf(" | |_| |   | |   / ___ \\ ___) | |_| |  |_|\n");
-    printf("  \\___/    |_|  /_/   \\_\\____/ \\____|  (_)\n");
-    printf("                                          \n");
-    printf("    ___  ___   ___   ___  ___  ___       \n");
-    printf("   / __|| _ \\ | __| | __|| _ \\| __|      \n");
-    printf("  | (_ ||   /| _|  | _| |   /| _|        \n");
-    printf("   \\___||_|_\\|___| |___||_|_\\|___|      \n");
+    printf("    _    _    __  __ _____ _____ \n");
+    printf("   | |  / \\  |  \\/  | ____|_   _|\n");
+    printf("_  | | / _ \\ | |\\/| |  _|   | |  \n");
+    printf("| |_| |/ ___ \\| |  | | |___  | |  \n");
+    printf("\\___//_/   \\_\\_|  |_|_____| |_|  \n");
     printf("                                          \n");
     printf("    Bahasa Pemrograman Basa Jawa          \n\n");
     printf("  Ketik '.help' kanggo bantuan\n");

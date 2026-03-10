@@ -1,59 +1,60 @@
 # JametLang
+
 ## Bahasa Pemrograman Basa Jawa
 
 JametLang is a programming language that uses Bahasa Jawa (Javanese language) syntax. Created as a fun and educational project to preserve and promote the use of traditional Indonesian language in programming.
 
 ## Jinis Data (Data Types)
 
-| JametLang | Keterangan |
-|-----------|------------|
-| `integer` | Nomor bulat (whole numbers) |
-| `float` | Nomor desimal (decimal numbers) |
-| `string` | Teks (text) |
-| `boolean` | Bener/Salah (True/False) |
-| `array` | Kumpulan data (collection) |
-| `kosong` | Null/None value |
+| JametLang | Keterangan                      |
+| --------- | ------------------------------- |
+| `integer` | Nomor bulat (whole numbers)     |
+| `float`   | Nomor desimal (decimal numbers) |
+| `string`  | Teks (text)                     |
+| `boolean` | Bener/Salah (True/False)        |
+| `array`   | Kumpulan data (collection)      |
+| `kosong`  | Null/None value                 |
 
 ## Tembung Kunci (Keywords)
 
-| Bahasa Jawa | English | Keterangan |
-|-------------|---------|------------|
-| `nek` | if | Kanggo kondisi |
-| `kajaba` | else | Alternatif kondisi |
-| `kanggo` | for | Loop |
-| `sawise` | while | Loop kondisi |
-| `balekno` | return | Mbalekno nilai |
-| `nyerat` | write/print | Nampilake output |
-| `moco` | read/input | Maca input |
-| `fungsi` | function | Fungsi |
-| `variabel` | var/let | Variabel |
-| `bener` | true | True |
-| `salah` | false | False |
-| `kosong` | null | Null value |
-| `pegat` | break | Pegat loop |
-| `terusake` | continue | Terusake loop |
-| `lan` | and | Logika AND |
-| `utawa` | or | Logika OR |
-| `ora` | not | Logika NOT |
-| `kelas` | class | Kelas |
-| `anyar` | new | Anyar object |
-| `piwulang` | extends | Pewarisan |
+| Bahasa Jawa | English     | Keterangan         |
+| ----------- | ----------- | ------------------ |
+| `nek`       | if          | Kanggo kondisi     |
+| `kajaba`    | else        | Alternatif kondisi |
+| `kanggo`    | for         | Loop               |
+| `sawise`    | while       | Loop kondisi       |
+| `balekno`   | return      | Mbalekno nilai     |
+| `nyerat`    | write/print | Nampilake output   |
+| `moco`      | read/input  | Maca input         |
+| `fungsi`    | function    | Fungsi             |
+| `variabel`  | var/let     | Variabel           |
+| `bener`     | true        | True               |
+| `salah`     | false       | False              |
+| `kosong`    | null        | Null value         |
+| `pegat`     | break       | Pegat loop         |
+| `terusake`  | continue    | Terusake loop      |
+| `lan`       | and         | Logika AND         |
+| `utawa`     | or          | Logika OR          |
+| `ora`       | not         | Logika NOT         |
+| `kelas`     | class       | Kelas              |
+| `anyar`     | new         | Anyar object       |
+| `piwulang`  | extends     | Pewarisan          |
 
 ## Operators
 
-| Operator | Keterangan |
-|----------|------------|
-| `+` | Tambah (plus) |
-| `-` | Kurang (minus) |
-| `*` | Kali (multiply) |
-| `/` | Bagi (divide) |
-| `%` | Modulo |
-| `==` | Samadengan (equal) |
-| `!=` | Beda (not equal) |
-| `>` | Lebih besik (greater than) |
-| `<` | Lebih ciyut (less than) |
-| `+=` | Plus sama (add assign) |
-| `-=` | Minus sama (sub assign) |
+| Operator | Keterangan                 |
+| -------- | -------------------------- |
+| `+`      | Tambah (plus)              |
+| `-`      | Kurang (minus)             |
+| `*`      | Kali (multiply)            |
+| `/`      | Bagi (divide)              |
+| `%`      | Modulo                     |
+| `==`     | Samadengan (equal)         |
+| `!=`     | Beda (not equal)           |
+| `>`      | Lebih besik (greater than) |
+| `<`      | Lebih ciyut (less than)    |
+| `+=`     | Plus sama (add assign)     |
+| `-=`     | Minus sama (sub assign)    |
 
 ## Cara Gawe (Build)
 
@@ -123,27 +124,22 @@ jamet --version
 
 Ing mode REPL, sampeyan bisa nggunakake perintah khusus:
 
-| Perintah | Keterangan |
-|----------|------------|
-| `.help` | Nampilake bantuan |
-| `.exit` | Metu saka REPL |
-| `.clear` | Bersihna layar |
-| `.tokens` | Mode token debug |
+| Perintah  | Keterangan        |
+| --------- | ----------------- |
+| `.help`   | Nampilake bantuan |
+| `.exit`   | Metu saka REPL    |
+| `.clear`  | Bersihna layar    |
+| `.tokens` | Mode token debug  |
 
 ### Conto REPL Session
 
 ```
 $ jamet
-   ___   __   __    _    ____   ____    _
-  / _ \  \ \ / /   / \  / ___| / ___|  | |
- | | | |  \ V /   / _ \ \___ \| |  _   | |
- | |_| |   | |   / ___ \ ___) | |_| |  |_|
-  \___/    |_|  /_/   \_\____/ \____|  (_)
-
-    ___  ___   ___   ___  ___  ___
-   / __|| _ \ | __| | __|| _ \ | __|
-  | (_ ||   /| _|  | _| |   /| _|
-   \___||_|_\|___| |___||_|_\|___|
+    _    _    __  __ _____ _____
+   | |  / \  |  \/  | ____|_   _|
+_  | | / _ \ | |\/| |  _|   | |
+| |_| |/ ___ \| |  | | |___  | |
+\___//_/   \_\_|  |_|_____| |_|
 
     Bahasa Pemrograman Basa Jawa
 
