@@ -1,0 +1,30 @@
+/* Conto Program JametLang - Halo Dunia */
+
+/* Nyetak variabel string */
+variabel pesan = "Halo, Dunia!";
+nyerat(pesan);
+
+/* Mbuat variabel nomer */
+variabel angka = 42;
+nyerat("Nomere: " + angka);
+
+/* Ngitung */
+variabel hasil = 10 + 5;
+nyerat("10 + 5 = " + hasil);
+
+/* Kondisi nek (if) */
+nek (hasil > 10) {
+    nyerat("Hasile luwih gede saka 10");
+}
+
+/* Loop kanggo (for) */
+kanggo (variabel i = 0; i < 5; i = i + 1) {
+    nyerat("Iterasi: " + i);
+}
+
+/* Boolean test */
+variabel bener = bener;
+variabel salah = salah;
+
+nyerat("Bener: " + bener);
+nyerat("Salah: " + salah);

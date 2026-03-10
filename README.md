@@ -55,36 +55,137 @@ JametLang is a programming language that uses Bahasa Jawa (Javanese language) sy
 | `+=` | Plus sama (add assign) |
 | `-=` | Minus sama (sub assign) |
 
+## Cara Gawe (Build)
+
+```bash
+# Build CLI dan Demo
+make
+
+# Build CLI only
+make cli
+
+# Build Demo only
+make demo
+```
+
+## Cara Instalasi (Installation)
+
+### Otomatis (Automatic)
+
+```bash
+# Jalankan installer
+sudo ./install.sh
+
+# Utawa nggunakake make
+sudo make install
+```
+
+### Manual
+
+```bash
+# Build
+make cli
+
+# Copy ke /usr/local/bin
+sudo cp bin/jamet /usr/local/bin/
+sudo chmod +x /usr/local/bin/jamet
+```
+
+### Uninstall
+
+```bash
+# Menggunakan script uninstall
+sudo ./uninstall.sh
+
+# Utawa nggunakake make
+sudo make uninstall
+```
+
+## CLI / REPL
+
+Setelah instalasi, jalankan `jamet` saka terminal:
+
+```bash
+# Mlebet mode REPL
+jamet
+
+# Jalankan file
+jamet file.jmt
+
+# Tampilkan bantuan
+jamet --help
+
+# Tampilkan versi
+jamet --version
+```
+
+### REPL Commands
+
+Ing mode REPL, sampeyan bisa nggunakake perintah khusus:
+
+| Perintah | Keterangan |
+|----------|------------|
+| `.help` | Nampilake bantuan |
+| `.exit` | Metu saka REPL |
+| `.clear` | Bersihna layar |
+| `.tokens` | Mode token debug |
+
+### Conto REPL Session
+
+```
+$ jamet
+   __  __          _____   _____
+  |  \/  |   /\   |  __ \ / ____|
+  | \  / |  /  \  | |__) | |
+  | |\/| | / /\ \ |  _  /| |
+  | |  | |/ ____ \| | \ \| |____
+  |_|  |_/_/    \_\_|  \_\_____|
+
+  Ketik '.help' kanggo bantuan
+  Ketik '.exit' utawa tekan Ctrl-D kanggo metu
+
+jamet> variabel x = 10
+=> Sukses tokenizing (4 token)
+
+jamet> nek (x > 5) { nyerat("Gede"); }
+=> Sukses tokenizing (9 token)
+
+jamet> .exit
+Matur nuwun! Sampun jumpa!
+```
+
 ## Conto Program (Example)
 
+File: `examples/halo.jmt`
+
 ```java
-/* Program Nitip Barang - Conto Bahasa JametLang */
+/* Conto Program JametLang - Halo Dunia */
 
-fungsi nitipBarang(variabel barang, variabel jumlah) {
-    nek (barang == kosong) {
-        balekno "Ora ana barang sing arep dititipne!";
-    }
+variabel pesan = "Halo, Dunia!";
+nyerat(pesan);
 
-    variabel total = 0;
-    kanggo (variabel i = 0; i < jumlah; i = i + 1) {
-        total = total + 1000;
-        nyerat("Nitipanke barang nomer: " + i);
-    }
+variabel angka = 42;
+nyerat("Nomere: " + angka);
 
-    balekno total;
+/* Ngitung */
+variabel hasil = 10 + 5;
+nyerat("10 + 5 = " + hasil);
+
+/* Kondisi */
+nek (hasil > 10) {
+    nyerat("Hasile luwih gede saka 10");
 }
 
-variabel hasil = nitipBarang("Keripik", 5);
-nyerat("Total biaya: " + hasil);
-
-/* Logika kondisi */
-nek (hasil > 5000 lan hasil < 10000) {
-    nyerat("Diskon 10%");
-} kajaba nek (hasil >= 10000) {
-    nyerat("Diskon 20%");
-} kajaba {
-    nyerat("Ora ana diskon");
+/* Loop */
+kanggo (variabel i = 0; i < 5; i = i + 1) {
+    nyerat("Iterasi: " + i);
 }
+```
+
+Jalankan:
+
+```bash
+jamet examples/halo.jmt
 ```
 
 ## Struktur Project
@@ -93,41 +194,33 @@ nek (hasil > 5000 lan hasil < 10000) {
 JametLang/
 ├── include/
 │   ├── jamet_types.h    # Jinis data dhasar
-│   └── lexer.h          # Lexer/Tokenizer
+│   ├── lexer.h          # Lexer/Tokenizer
+│   └── repl.h           # REPL header
 ├── src/
 │   ├── jamet_types.c    # Implementasi jinis data
 │   ├── lexer.c          # Implementasi lexer
+│   ├── repl.c           # Implementasi REPL
+│   ├── cli.c            # CLI entry point
 │   └── main.c           # Demo program
+├── examples/
+│   └── halo.jmt         # Conto program
 ├── bin/                 # Executable
 ├── build/               # Object files
+├── install.sh           # Installer script
+├── uninstall.sh         # Uninstaller script
 ├── Makefile
 └── README.md
-```
-
-## Cara Gawe (Build)
-
-```bash
-# Build project
-make
-
-# Run program
-./bin/jametlang
-
-# Clean build
-make clean
-
-# Rebuild
-make rebuild
 ```
 
 ## Status Saiki
 
 - [x] Jinis Data Dhasar (Basic Data Types)
 - [x] Lexer/Tokenizer
+- [x] CLI / REPL
+- [x] Installer
 - [ ] Parser (AST)
 - [ ] Interpreter
 - [ ] Standard Library
-- [ ] REPL
 
 ## Terima Kasih
 

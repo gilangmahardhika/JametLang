@@ -22,6 +22,7 @@
 *.out
 *.app
 jametlang
+jamet
 
 # Build directories
 build/
@@ -53,3 +54,10 @@ dist/
 # Package files
 *.tar.gz
 *.zip
+
+# REPL history
+jametlang_history.txt
+linenoise_history.txt
+
+# Library installation directory
+usr/

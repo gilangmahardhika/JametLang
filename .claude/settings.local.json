@@ -5,7 +5,10 @@
       "Bash(./bin/jametlang:*)",
       "Bash(git init:*)",
       "Bash(git branch:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(./bin/jamet:*)",
+      "Bash(chmod:*)"
     ]
   }
 }
