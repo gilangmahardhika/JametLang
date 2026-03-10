@@ -71,13 +71,18 @@ static const char *token_type_names[] = {
 /* Print welcome message */
 void repl_print_welcome(void) {
     printf("\n");
-    printf("   __  __          _____   _____\n");
-    printf("  |  \\/  |   /\\   |  __ \\ / ____|\n");
-    printf("  | \\  / |  /  \\  | |__) | |     \n");
-    printf("  | |\\/| | / /\\ \\ |  _  /| |     \n");
-    printf("  | |  | |/ ____ \\| | \\ \\| |____ \n");
-    printf("  |_|  |_/_/    \\_\\_|  \\_\\_____|\n");
-    printf("  Bahasa Pemrograman Basa Jawa\n\n");
+    printf("   ___   __   __    _    ____   ____    _\n");
+    printf("  / _ \\  \\ \\ / /   / \\  / ___| / ___|  | |\n");
+    printf(" | | | |  \\ V /   / _ \\ \\___ \\| |  _   | |\n");
+    printf(" | |_| |   | |   / ___ \\ ___) | |_| |  |_|\n");
+    printf("  \\___/    |_|  /_/   \\_\\____/ \\____|  (_)\n");
+    printf("                                          \n");
+    printf("    ___  ___   ___   ___  ___  ___       \n");
+    printf("   / __|| _ \\ | __| | __|| _ \\| __|      \n");
+    printf("  | (_ ||   /| _|  | _| |   /| _|        \n");
+    printf("   \\___||_|_\\|___| |___||_|_\\|___|      \n");
+    printf("                                          \n");
+    printf("    Bahasa Pemrograman Basa Jawa          \n\n");
     printf("  Ketik '.help' kanggo bantuan\n");
     printf("  Ketik '.exit' utawa tekan Ctrl-D kanggo metu\n\n");
 }

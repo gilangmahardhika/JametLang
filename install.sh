@@ -13,13 +13,18 @@ NC='\033[0m' # No Color
 
 # Print banner
 echo -e "${BLUE}"
-echo "   __  __          _____   _____"
-echo "  |  \/  |   /\   |  __ \ / ____|"
-echo "  | \  / |  /  \  | |__) | |     "
-echo "  | |\/| | / /\ \ |  _  /| |     "
-echo "  | |  | |/ ____ \| | \ \| |____ "
-echo "  |_|  |_/_/    \_\_|  \_\_____|"
-echo "  Bahasa Pemrograman Basa Jawa"
+echo "   ___   __   __    _    ____   ____    _"
+echo "  / _ \  \ \ / /   / \  / ___| / ___|  | |"
+echo " | | | |  \ V /   / _ \ \___ \| |  _   | |"
+echo " | |_| |   | |   / ___ \ ___) | |_| |  |_|"
+echo "  \___/    |_|  /_/   \_\____/ \____|  (_)"
+echo "                                          "
+echo "    ___  ___   ___   ___  ___  ___       "
+echo "   / __|| _ \ | __| | __|| _ \ | __|     "
+echo "  | (_ ||   /| _|  | _| |   /| _|        "
+echo "   \___||_|_\|___| |___||_|_\|___|       "
+echo "                                          "
+echo "    Bahasa Pemrograman Basa Jawa          "
 echo -e "${NC}"
 
 # Check if running as root
