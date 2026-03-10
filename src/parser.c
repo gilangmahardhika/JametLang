@@ -382,20 +382,20 @@ void expr_free(Expr *expr) {
         case EXPR_BINARY:
             expr_free(expr->as.binary.left);
             expr_free(expr->as.binary.right);
-            free(expr->as.binary.op.lexeme);
+            /* Don't free op.lexeme - owned by lexer tokens */
             break;
         case EXPR_UNARY:
             expr_free(expr->as.unary.right);
-            free(expr->as.unary.op.lexeme);
+            /* Don't free op.lexeme - owned by lexer tokens */
             break;
         case EXPR_GROUPING:
             expr_free(expr->as.grouping.expression);
             break;
         case EXPR_VARIABLE:
-            free(expr->as.variable.name.lexeme);
+            /* Don't free name.lexeme - owned by lexer tokens */
             break;
         case EXPR_ASSIGN:
-            free(expr->as.assign.name.lexeme);
+            /* Don't free name.lexeme - owned by lexer tokens */
             expr_free(expr->as.assign.value);
             break;
         default:
@@ -413,7 +413,7 @@ void stmt_free(Stmt *stmt) {
             expr_free(stmt->as.expr.expression);
             break;
         case STMT_VAR_DECL:
-            free(stmt->as.var_decl.name.lexeme);
+            /* Don't free name.lexeme - owned by lexer tokens */
             expr_free(stmt->as.var_decl.initializer);
             break;
         default:

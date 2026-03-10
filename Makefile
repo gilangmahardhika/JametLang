@@ -4,10 +4,10 @@
 CC = gcc
 
 # CFLAGS
-CFLAGS = -Wall -Wextra -std=c11 -I./include
+CFLAGS = -Wall -Wextra -std=c11 -I./include -DUSE_READLINE
 
-# LDFLAGS for linenoise (optional)
-LDFLAGS =
+# LDFLAGS for readline
+LDFLAGS = -lreadline
 
 # Directories
 SRC_DIR = src

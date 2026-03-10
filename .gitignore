@@ -61,3 +61,5 @@ linenoise_history.txt
 
 # Library installation directory
 usr/
+.jamet_history
+.claude/*

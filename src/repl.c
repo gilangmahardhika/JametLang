@@ -9,12 +9,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Try to use linenoise if available, otherwise use fallback */
-#ifdef USE_LINENOISE
-    #include <linenoise.h>
-    #define HAS_LINENOISE 1
+/* Try to use readline if available */
+#ifdef USE_READLINE
+    #include <readline/readline.h>
+    #include <readline/history.h>
+    #define HAS_READLINE 1
 #else
-    #define HAS_LINENOISE 0
+    #define HAS_READLINE 0
 #endif
 
 /* Token type names */
@@ -189,26 +190,26 @@ void repl_execute_line(const char *line) {
 
 /* Run REPL */
 void repl_run(void) {
-#if HAS_LINENOISE
+#if HAS_READLINE
     repl_print_welcome();
 
     char *line;
 
-    /* Set history file */
-    linenoiseHistoryLoad("jametlang_history.txt");
+    /* Load history */
+    read_history(".jamet_history");
 
-    while ((line = linenoise("jamet> ")) != NULL) {
+    while ((line = readline("jamet> ")) != NULL) {
         /* Execute the line */
         repl_execute_line(line);
 
         /* Add to history */
         if (strlen(line) > 0) {
-            linenoiseHistoryAdd(line);
-            linenoiseHistorySave("jametlang_history.txt");
+            add_history(line);
+            write_history(".jamet_history");
         }
 
         /* Free the line */
-        linenoiseFree(line);
+        free(line);
     }
 
     printf("\nMatur nuwun! Sampun jumpa!\n");
