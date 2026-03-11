@@ -8,12 +8,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <setjmp.h>
 
 /* Control flow flags for break/continue */
 static int break_flag = 0;
 static int continue_flag = 0;
 static JametValue *return_value = NULL;
 static int quiet_mode = 0;
+
+/* Exception handling state */
+#define MAX_TRY_DEPTH 32
+static jmp_buf try_stack[MAX_TRY_DEPTH];
+static int try_depth = 0;
+static int throw_flag = 0;
+static JametValue *thrown_value = NULL;
 
 /* Set quiet mode (suppress => output in file execution) */
 void parser_set_quiet(int quiet) {
@@ -240,6 +248,8 @@ static void synchronize(Parser *parser) {
             case TOKEN_FUNGSI:
             case TOKEN_PEGAT:
             case TOKEN_TERUSAKE:
+            case TOKEN_JANCUK:
+            case TOKEN_UNCAL:
                 return;
             default:
                 break;
@@ -388,6 +398,25 @@ static Stmt *make_break_stmt(void) {
 static Stmt *make_continue_stmt(void) {
     Stmt *stmt = (Stmt *)malloc(sizeof(Stmt));
     stmt->type = STMT_CONTINUE;
+    return stmt;
+}
+
+/* Create try/catch/finally statement */
+static Stmt *make_try_stmt(Stmt *try_block, Token catch_param, Stmt *catch_block, Stmt *finally_block) {
+    Stmt *stmt = (Stmt *)malloc(sizeof(Stmt));
+    stmt->type = STMT_TRY;
+    stmt->as.try_stmt.try_block = try_block;
+    stmt->as.try_stmt.catch_param = catch_param;
+    stmt->as.try_stmt.catch_block = catch_block;
+    stmt->as.try_stmt.finally_block = finally_block;
+    return stmt;
+}
+
+/* Create throw statement */
+static Stmt *make_throw_stmt(Expr *value) {
+    Stmt *stmt = (Stmt *)malloc(sizeof(Stmt));
+    stmt->type = STMT_THROW;
+    stmt->as.throw_stmt.value = value;
     return stmt;
 }
 
@@ -832,6 +861,38 @@ static Stmt *parse_continue_statement(Parser *parser) {
     return make_continue_stmt();
 }
 
+/* Parse try/catch/finally statement (jancuk/awas/rampungke) */
+static Stmt *parse_try_statement(Parser *parser) {
+    /* jancuk { ... } */
+    consume(parser, TOKEN_LBRACE, "Expected '{' after 'jancuk'.");
+    Stmt *try_block = parse_block(parser);
+
+    /* awas (err) { ... } */
+    consume(parser, TOKEN_AWAS, "Expected 'awas' after jancuk block.");
+    consume(parser, TOKEN_LPAREN, "Expected '(' after 'awas'.");
+    consume(parser, TOKEN_IDENTIFIER, "Expected variable name in 'awas'.");
+    Token catch_param = *previous(parser);
+    consume(parser, TOKEN_RPAREN, "Expected ')' after awas variable.");
+    consume(parser, TOKEN_LBRACE, "Expected '{' after 'awas(...)'.");
+    Stmt *catch_block = parse_block(parser);
+
+    /* rampungke { ... } (optional) */
+    Stmt *finally_block = NULL;
+    if (match(parser, TOKEN_RAMPUNGKE)) {
+        consume(parser, TOKEN_LBRACE, "Expected '{' after 'rampungke'.");
+        finally_block = parse_block(parser);
+    }
+
+    return make_try_stmt(try_block, catch_param, catch_block, finally_block);
+}
+
+/* Parse throw statement (uncal) */
+static Stmt *parse_throw_statement(Parser *parser) {
+    Expr *value = parser_parse_expression(parser);
+    consume(parser, TOKEN_SEMICOLON, "Expected ';' after 'uncal' value.");
+    return make_throw_stmt(value);
+}
+
 /* Parse statement */
 static Stmt *parse_statement(Parser *parser) {
     if (match(parser, TOKEN_VARIABEL)) {
@@ -857,6 +918,12 @@ static Stmt *parse_statement(Parser *parser) {
     }
     if (match(parser, TOKEN_TERUSAKE)) {
         return parse_continue_statement(parser);
+    }
+    if (match(parser, TOKEN_JANCUK)) {
+        return parse_try_statement(parser);
+    }
+    if (match(parser, TOKEN_UNCAL)) {
+        return parse_throw_statement(parser);
     }
     if (match(parser, TOKEN_NYERAT)) {
         return parse_print_statement(parser);
@@ -992,6 +1059,15 @@ void stmt_free(Stmt *stmt) {
         case STMT_BREAK:
         case STMT_CONTINUE:
             /* Nothing to free */
+            break;
+        case STMT_TRY:
+            stmt_free(stmt->as.try_stmt.try_block);
+            /* Don't free catch_param.lexeme - owned by lexer tokens */
+            stmt_free(stmt->as.try_stmt.catch_block);
+            stmt_free(stmt->as.try_stmt.finally_block);
+            break;
+        case STMT_THROW:
+            expr_free(stmt->as.throw_stmt.value);
             break;
         default:
             break;
@@ -1394,6 +1470,80 @@ void exec_stmt(Stmt *stmt) {
         }
         case STMT_CONTINUE: {
             continue_flag = 1;
+            break;
+        }
+        case STMT_TRY: {
+            if (try_depth >= MAX_TRY_DEPTH) {
+                fprintf(stderr, "Kesalahan: jancuk/awas nested kedalaman kebablasen\n");
+                break;
+            }
+
+            int jmp_result = setjmp(try_stack[try_depth]);
+            if (jmp_result == 0) {
+                /* Normal execution of try block */
+                try_depth++;
+                exec_stmt(stmt->as.try_stmt.try_block);
+                try_depth--;
+
+                /* If throw happened inside a nested handler that propagated, check */
+                if (throw_flag) {
+                    /* Exception was thrown but not caught by inner handler, catch it here */
+                    throw_flag = 0;
+                    set_var(stmt->as.try_stmt.catch_param.lexeme,
+                            thrown_value ? jamet_value_copy(thrown_value) : jamet_string_new("unknown error"));
+                    exec_stmt(stmt->as.try_stmt.catch_block);
+                    if (thrown_value) {
+                        jamet_value_free(thrown_value);
+                        thrown_value = NULL;
+                    }
+                }
+            } else {
+                /* longjmp landed here - exception was thrown */
+                try_depth--;
+                throw_flag = 0;
+
+                /* Bind caught value to catch parameter variable */
+                set_var(stmt->as.try_stmt.catch_param.lexeme,
+                        thrown_value ? jamet_value_copy(thrown_value) : jamet_string_new("unknown error"));
+
+                /* Execute catch block */
+                exec_stmt(stmt->as.try_stmt.catch_block);
+
+                /* Clean up thrown value */
+                if (thrown_value) {
+                    jamet_value_free(thrown_value);
+                    thrown_value = NULL;
+                }
+            }
+
+            /* Always execute finally block */
+            if (stmt->as.try_stmt.finally_block) {
+                exec_stmt(stmt->as.try_stmt.finally_block);
+            }
+            break;
+        }
+        case STMT_THROW: {
+            JametValue *value = eval_expr(stmt->as.throw_stmt.value);
+
+            /* Store the thrown value */
+            if (thrown_value) {
+                jamet_value_free(thrown_value);
+            }
+            thrown_value = value;
+            throw_flag = 1;
+
+            if (try_depth > 0) {
+                /* Jump to nearest try/catch handler */
+                longjmp(try_stack[try_depth - 1], 1);
+            } else {
+                /* Unhandled exception */
+                char *str = jamet_value_to_string(value);
+                fprintf(stderr, "Kesalahan ora ditangkep (Unhandled Exception): %s\n", str);
+                free(str);
+                throw_flag = 0;
+                jamet_value_free(thrown_value);
+                thrown_value = NULL;
+            }
             break;
         }
         default:

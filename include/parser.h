@@ -34,7 +34,9 @@ typedef enum {
     STMT_FUNC_DECL,
     STMT_RETURN,
     STMT_BREAK,
-    STMT_CONTINUE
+    STMT_CONTINUE,
+    STMT_TRY,
+    STMT_THROW
 } StmtType;
 
 /* Forward declarations */
@@ -127,6 +129,15 @@ struct Stmt {
             Token keyword;
             Expr *value;
         } return_stmt;
+        struct {
+            Stmt *try_block;
+            Token catch_param;     /* variable name for caught error */
+            Stmt *catch_block;
+            Stmt *finally_block;   /* can be NULL */
+        } try_stmt;
+        struct {
+            Expr *value;
+        } throw_stmt;
     } as;
 };
 

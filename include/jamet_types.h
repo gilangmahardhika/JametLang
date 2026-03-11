@@ -73,9 +73,10 @@ typedef enum {
     TOKEN_LAN,         /* and */
     TOKEN_UTAWA,       /* or */
     TOKEN_ORA,         /* not */
-    TOKEN_KELAS,       /* class */
-    TOKEN_ANYAR,       /* new */
-    TOKEN_PIWULANG,    /* extends */
+    TOKEN_JANCUK,      /* try */
+    TOKEN_AWAS,        /* catch */
+    TOKEN_RAMPUNGKE,   /* finally */
+    TOKEN_UNCAL,       /* throw */
 
     /* Operators & Symbols */
     TOKEN_PLUS,        /* + */

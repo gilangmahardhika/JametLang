@@ -1,0 +1,135 @@
+// Test Exception Handling (jancuk/awas/rampungke)
+
+// ==================== Basic Try/Catch ====================
+nyerat("=== Basic Try/Catch ===");
+
+jancuk {
+    nyerat("Ing jancuk block...");
+    uncal "Kesalahan pertama!";
+    nyerat("Iki ora bakal dieksekusi");
+} awas (err) {
+    nyerat("Ditangkep: " + err);
+}
+
+// ==================== Try/Catch/Finally ====================
+nyerat("");
+nyerat("=== Try/Catch/Finally ===");
+
+jancuk {
+    nyerat("Jancuk block...");
+    uncal "Ada masalah!";
+} awas (e) {
+    nyerat("Awas nangkep: " + e);
+} rampungke {
+    nyerat("Rampungke tansah dieksekusi");
+}
+
+// ==================== Finally tanpa error ====================
+nyerat("");
+nyerat("=== Finally tanpa error ===");
+
+jancuk {
+    nyerat("Ora ana error ing kene");
+} awas (e) {
+    nyerat("Iki ora bakal dieksekusi");
+} rampungke {
+    nyerat("Rampungke tansah jalan");
+}
+
+// ==================== Throw values ====================
+nyerat("");
+nyerat("=== Throw berbagai jinis ===");
+
+jancuk {
+    uncal 404;
+} awas (kode) {
+    nyerat("Error kode: " + kode);
+    nyerat("Jinis: " + jinis(kode));
+}
+
+jancuk {
+    uncal 3.14;
+} awas (val) {
+    nyerat("Error float: " + val);
+}
+
+jancuk {
+    uncal bener;
+} awas (val) {
+    nyerat("Error boolean: " + val);
+}
+
+// ==================== Throw from function ====================
+nyerat("");
+nyerat("=== Throw saka fungsi ===");
+
+fungsi bagi(a, b) {
+    nek (b == 0) {
+        uncal "Ora bisa bagi karo nol!";
+    }
+    balekno a / b;
+}
+
+jancuk {
+    variabel hasil = bagi(10, 2);
+    nyerat("10 / 2 = " + hasil);
+    variabel hasil2 = bagi(10, 0);
+    nyerat("Iki ora bakal dieksekusi");
+} awas (err) {
+    nyerat("Ditangkep: " + err);
+}
+
+// ==================== Nested try/catch ====================
+nyerat("");
+nyerat("=== Nested jancuk/awas ===");
+
+jancuk {
+    nyerat("Outer jancuk");
+    jancuk {
+        nyerat("Inner jancuk");
+        uncal "Inner error";
+    } awas (e) {
+        nyerat("Inner awas: " + e);
+    }
+    nyerat("Outer terus jalan sawise inner catch");
+} awas (e) {
+    nyerat("Outer awas: " + e);
+}
+
+// ==================== Unhandled exception ====================
+nyerat("");
+nyerat("=== Unhandled exception ===");
+// uncal "Iki ora ditangkep!";  // Uncomment kanggo test unhandled
+
+// ==================== Re-throw ====================
+nyerat("");
+nyerat("=== Re-throw ===");
+
+jancuk {
+    jancuk {
+        uncal "Error asli";
+    } awas (e) {
+        nyerat("Nangkep: " + e);
+        uncal "Error anyar: " + e;
+    }
+} awas (e) {
+    nyerat("Outer nangkep: " + e);
+}
+
+// ==================== Exception in loop ====================
+nyerat("");
+nyerat("=== Exception ing loop ===");
+
+kanggo (variabel i = 0; i < 5; i = i + 1) {
+    jancuk {
+        nek (i == 3) {
+            uncal "Stop ing " + i;
+        }
+        nyerat("Loop " + i + " OK");
+    } awas (e) {
+        nyerat("Loop " + i + " error: " + e);
+    }
+}
+
+nyerat("");
+nyerat("=== Kabeh test rampung! ===");

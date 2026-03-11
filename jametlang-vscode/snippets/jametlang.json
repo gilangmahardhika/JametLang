@@ -218,5 +218,34 @@
     "prefix": "indeks",
     "body": ["indeks(${1:arr}, ${2:val})"],
     "description": "Golek indeks elemen ing array (indexOf)"
+  },
+  "Try Catch": {
+    "prefix": "jancuk",
+    "body": [
+      "jancuk {",
+      "\t${1:// kode sing bisa error}",
+      "} awas (${2:err}) {",
+      "\t${3:// tangani error}",
+      "}"
+    ],
+    "description": "Try/catch block (jancuk/awas)"
+  },
+  "Try Catch Finally": {
+    "prefix": "jancuk-rampungke",
+    "body": [
+      "jancuk {",
+      "\t${1:// kode sing bisa error}",
+      "} awas (${2:err}) {",
+      "\t${3:// tangani error}",
+      "} rampungke {",
+      "\t${4:// tansah dieksekusi}",
+      "}"
+    ],
+    "description": "Try/catch/finally block (jancuk/awas/rampungke)"
+  },
+  "Throw": {
+    "prefix": "uncal",
+    "body": ["uncal ${1:\"pesan error\"};"],
+    "description": "Throw exception (uncal)"
   }
 }

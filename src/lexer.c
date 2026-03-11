@@ -35,9 +35,10 @@ static const Keyword keywords[] = {
     {"lan", TOKEN_LAN},              /* and */
     {"utawa", TOKEN_UTAWA},          /* or */
     {"ora", TOKEN_ORA},              /* not */
-    {"kelas", TOKEN_KELAS},          /* class */
-    {"anyar", TOKEN_ANYAR},          /* new */
-    {"piwulang", TOKEN_PIWULANG},    /* extends */
+    {"jancuk", TOKEN_JANCUK},        /* try */
+    {"awas", TOKEN_AWAS},            /* catch */
+    {"rampungke", TOKEN_RAMPUNGKE},  /* finally */
+    {"uncal", TOKEN_UNCAL},          /* throw */
 
     /* Variasi ejaan (nganggo a/e/o) */
     {"kango", TOKEN_KANGGO},         /* for - tanpa go */

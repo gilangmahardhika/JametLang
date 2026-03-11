@@ -227,6 +227,7 @@ JametLang/
 │   ├── test_parser.jmt  # Test parser & interpreter
 │   ├── test_stdlib.jmt  # Test standard library
 │   ├── test_array.jmt   # Test array operations
+│   ├── test_exception.jmt # Test exception handling
 │   └── test_simple.jmt  # Test sederhana
 ├── jametlang-vscode/    # VSCode Extension
 │   ├── syntaxes/        # TextMate grammar
@@ -253,6 +254,7 @@ JametLang/
 - **Input/Output** — `nyerat()` / `moco()`
 - **Standard Library** — Fungsi bawaan kanggo string, matematika, konversi, lan utilitas
 - **Array** — `[1, 2, 3]`, akses `arr[i]`, assignment `arr[i] = val`, negative index
+- **Exception Handling** — `jancuk`/`awas`/`rampungke` (try/catch/finally), `uncal` (throw)
 
 ## Standard Library
 
@@ -333,6 +335,48 @@ kanggo (variabel i = 0; i < 5; i = i + 1) {
 }
 ```
 
+## Exception Handling
+
+JametLang nyedhiyakake exception handling nganggo kata kunci Jawa:
+
+| Keyword | Arti | Padanan |
+| ------- | ---- | ------- |
+| `jancuk` | Try block | `try` |
+| `awas` | Catch block | `catch` |
+| `rampungke` | Finally block (opsional) | `finally` |
+| `uncal` | Throw/raise exception | `throw` |
+
+```jmt
+// Basic try/catch
+jancuk {
+    uncal "Ada masalah!";
+} awas (err) {
+    nyerat("Ditangkep: " + err);
+}
+
+// Karo finally
+jancuk {
+    variabel hasil = bagi(10, 0);
+} awas (e) {
+    nyerat("Error: " + e);
+} rampungke {
+    nyerat("Tansah dieksekusi");
+}
+
+// Throw saka fungsi
+fungsi bagi(a, b) {
+    nek (b == 0) {
+        uncal "Ora bisa bagi karo nol!";
+    }
+    balekno a / b;
+}
+
+// Throw macem-macem jinis
+uncal "pesan error";   // string
+uncal 404;              // integer
+uncal 3.14;             // float
+```
+
 ## Status Saiki
 
 - [x] Jinis Data Dhasar (Basic Data Types)
@@ -344,7 +388,7 @@ kanggo (variabel i = 0; i < 5; i = i + 1) {
 - [x] Installer
 - [x] Standard Library (string, math, konversi, utilitas)
 - [x] Array Operations (literal, index, assignment, stdlib functions)
-- [ ] Class / OOP (`kelas`, `anyar`, `piwulang`)
+- [x] Exception Handling (`jancuk`/`awas`/`rampungke`, `uncal`)
 
 ## VSCode Extension
 
