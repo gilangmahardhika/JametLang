@@ -178,5 +178,45 @@
     "prefix": "wektu",
     "body": ["wektu()"],
     "description": "Wektu saiki (current time in seconds)"
+  },
+  "Array Literal": {
+    "prefix": "array",
+    "body": ["[${1:elements}]"],
+    "description": "Array literal"
+  },
+  "Array Push": {
+    "prefix": "tambah",
+    "body": ["tambah(${1:arr}, ${2:elem})"],
+    "description": "Tambah elemen ing mburi array (push)"
+  },
+  "Array Remove": {
+    "prefix": "hapus",
+    "body": ["hapus(${1:arr}, ${2:indeks})"],
+    "description": "Hapus elemen ing indeks (remove)"
+  },
+  "Array Concat": {
+    "prefix": "gabung",
+    "body": ["gabung(${1:arr1}, ${2:arr2})"],
+    "description": "Gabung loro array (concat)"
+  },
+  "Array Reverse": {
+    "prefix": "balik",
+    "body": ["balik(${1:arr})"],
+    "description": "Balik urutan array (reverse)"
+  },
+  "Array Sort": {
+    "prefix": "urutke",
+    "body": ["urutke(${1:arr})"],
+    "description": "Urutke array ascending (sort)"
+  },
+  "Array Slice": {
+    "prefix": "irisan",
+    "body": ["irisan(${1:arr}, ${2:mulai}, ${3:akhir})"],
+    "description": "Potong array (slice)"
+  },
+  "Array IndexOf": {
+    "prefix": "indeks",
+    "body": ["indeks(${1:arr}, ${2:val})"],
+    "description": "Golek indeks elemen ing array (indexOf)"
   }
 }

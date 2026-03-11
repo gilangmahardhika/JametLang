@@ -402,6 +402,34 @@ static Expr *make_call_expr(Expr *callee, Token paren, Expr **arguments, size_t 
     return expr;
 }
 
+/* Create array literal expression */
+static Expr *make_array_expr(Expr **elements, size_t count) {
+    Expr *expr = (Expr *)malloc(sizeof(Expr));
+    expr->type = EXPR_ARRAY;
+    expr->as.array.elements = elements;
+    expr->as.array.count = count;
+    return expr;
+}
+
+/* Create index access expression */
+static Expr *make_index_expr(Expr *object, Expr *index) {
+    Expr *expr = (Expr *)malloc(sizeof(Expr));
+    expr->type = EXPR_INDEX;
+    expr->as.index_access.object = object;
+    expr->as.index_access.index = index;
+    return expr;
+}
+
+/* Create index assignment expression */
+static Expr *make_index_assign_expr(Expr *object, Expr *index, Expr *value) {
+    Expr *expr = (Expr *)malloc(sizeof(Expr));
+    expr->type = EXPR_INDEX_ASSIGN;
+    expr->as.index_assign.object = object;
+    expr->as.index_assign.index = index;
+    expr->as.index_assign.value = value;
+    return expr;
+}
+
 /* Forward declarations for recursive parsing */
 static Stmt *parse_statement(Parser *parser);
 static Stmt *parse_block(Parser *parser);
@@ -443,8 +471,39 @@ static Expr *parse_primary(Parser *parser) {
         consume(parser, TOKEN_RPAREN, "Expected ')' after expression.");
         return make_grouping_expr(expr);
     }
+    /* Array literal [a, b, c] */
+    if (match(parser, TOKEN_LBRACKET)) {
+        Expr **elements = NULL;
+        size_t elem_count = 0;
+        size_t elem_capacity = 8;
+
+        if (!check(parser, TOKEN_RBRACKET)) {
+            elements = (Expr **)malloc(sizeof(Expr *) * elem_capacity);
+            do {
+                if (elem_count >= elem_capacity) {
+                    elem_capacity *= 2;
+                    elements = (Expr **)realloc(elements, sizeof(Expr *) * elem_capacity);
+                }
+                elements[elem_count++] = parser_parse_expression(parser);
+            } while (match(parser, TOKEN_COMMA));
+        }
+
+        consume(parser, TOKEN_RBRACKET, "Expected ']' after array elements.");
+        Expr *arr = make_array_expr(elements, elem_count);
+
+        /* Check for immediate index access [1,2,3][0] */
+        while (match(parser, TOKEN_LBRACKET)) {
+            Expr *index = parser_parse_expression(parser);
+            consume(parser, TOKEN_RBRACKET, "Expected ']' after index.");
+            arr = make_index_expr(arr, index);
+        }
+
+        return arr;
+    }
+
     if (match(parser, TOKEN_IDENTIFIER)) {
         Token name = *previous(parser);
+        Expr *expr = NULL;
         
         /* Check for function call */
         if (match(parser, TOKEN_LPAREN)) {
@@ -465,10 +524,19 @@ static Expr *parse_primary(Parser *parser) {
             }
             
             consume(parser, TOKEN_RPAREN, "Expected ')' after arguments.");
-            return make_call_expr(make_variable_expr(name), paren, args, arg_count);
+            expr = make_call_expr(make_variable_expr(name), paren, args, arg_count);
+        } else {
+            expr = make_variable_expr(name);
+        }
+
+        /* Check for index access: arr[i] or func()[i] */
+        while (match(parser, TOKEN_LBRACKET)) {
+            Expr *index = parser_parse_expression(parser);
+            consume(parser, TOKEN_RBRACKET, "Expected ']' after index.");
+            expr = make_index_expr(expr, index);
         }
         
-        return make_variable_expr(name);
+        return expr;
     }
 
     fprintf(stderr, "Kesalahan: Token ora dikenal ing expression\n");
@@ -565,6 +633,16 @@ static Expr *parse_assignment(Parser *parser) {
         if (expr->type == EXPR_VARIABLE) {
             Expr *assign = make_assign_expr(expr->as.variable.name, value);
             expr_free(expr); /* Free the variable expr, we saved the name */
+            return assign;
+        }
+
+        /* Array index assignment: arr[i] = val */
+        if (expr->type == EXPR_INDEX) {
+            Expr *obj = expr->as.index_access.object;
+            Expr *idx = expr->as.index_access.index;
+            Expr *assign = make_index_assign_expr(obj, idx, value);
+            /* Free only the wrapper, not children (they are reused) */
+            free(expr);
             return assign;
         }
     }
@@ -845,6 +923,21 @@ void expr_free(Expr *expr) {
             }
             free(expr->as.call.arguments);
             break;
+        case EXPR_ARRAY:
+            for (size_t i = 0; i < expr->as.array.count; i++) {
+                expr_free(expr->as.array.elements[i]);
+            }
+            free(expr->as.array.elements);
+            break;
+        case EXPR_INDEX:
+            expr_free(expr->as.index_access.object);
+            expr_free(expr->as.index_access.index);
+            break;
+        case EXPR_INDEX_ASSIGN:
+            expr_free(expr->as.index_assign.object);
+            expr_free(expr->as.index_assign.index);
+            expr_free(expr->as.index_assign.value);
+            break;
         default:
             break;
     }
@@ -978,6 +1071,12 @@ JametValue *eval_expr(Expr *expr) {
                     return jamet_string_new("");
                 }
 
+                /* User-defined functions (checked first to allow overriding stdlib) */
+                Function *func = find_func(name);
+                if (func) {
+                    return exec_function_call(func, expr->as.call.arguments, expr->as.call.count);
+                }
+
                 /* Standard library functions */
                 {
                     size_t ac = expr->as.call.count;
@@ -996,12 +1095,6 @@ JametValue *eval_expr(Expr *expr) {
                     }
                     for (size_t i = 0; i < ac; i++) jamet_value_free(evaluated_args[i]);
                     free(evaluated_args);
-                }
-
-                /* User-defined functions */
-                Function *func = find_func(name);
-                if (func) {
-                    return exec_function_call(func, expr->as.call.arguments, expr->as.call.count);
                 }
             }
             fprintf(stderr, "Kesalahan: Fungsi '%s' ora dikenal\n",
@@ -1084,6 +1177,64 @@ JametValue *eval_expr(Expr *expr) {
             jamet_value_free(left);
             jamet_value_free(right);
             return result;
+        }
+
+        case EXPR_ARRAY: {
+            JametValue *arr = jamet_array_new(expr->as.array.count > 0 ? expr->as.array.count : 8);
+            for (size_t i = 0; i < expr->as.array.count; i++) {
+                JametValue *elem = eval_expr(expr->as.array.elements[i]);
+                jamet_array_push(arr, elem);
+            }
+            return arr;
+        }
+
+        case EXPR_INDEX: {
+            JametValue *object = eval_expr(expr->as.index_access.object);
+            JametValue *idx_val = eval_expr(expr->as.index_access.index);
+            JametValue *result = jamet_value_new(JAMET_NONE);
+
+            if (object->type == JAMET_ARRAY && idx_val->type == JAMET_INTEGER) {
+                long idx = idx_val->as.integer;
+                if (idx < 0) idx = (long)object->as.array.count + idx;
+                if (idx >= 0 && (size_t)idx < object->as.array.count) {
+                    jamet_value_free(result);
+                    result = jamet_value_copy(object->as.array.elements[idx]);
+                }
+            } else if (object->type == JAMET_STRING && idx_val->type == JAMET_INTEGER) {
+                long idx = idx_val->as.integer;
+                if (idx < 0) idx = (long)object->as.string.length + idx;
+                if (idx >= 0 && (size_t)idx < object->as.string.length) {
+                    char ch[2] = { object->as.string.value[idx], '\0' };
+                    jamet_value_free(result);
+                    result = jamet_string_new(ch);
+                }
+            }
+
+            jamet_value_free(object);
+            jamet_value_free(idx_val);
+            return result;
+        }
+
+        case EXPR_INDEX_ASSIGN: {
+            /* Resolve the target object (must be a variable) */
+            Expr *obj_expr = expr->as.index_assign.object;
+            JametValue *idx_val = eval_expr(expr->as.index_assign.index);
+            JametValue *new_val = eval_expr(expr->as.index_assign.value);
+
+            if (obj_expr->type == EXPR_VARIABLE) {
+                JametValue *arr = get_var(obj_expr->as.variable.name.lexeme);
+                if (arr && arr->type == JAMET_ARRAY && idx_val->type == JAMET_INTEGER) {
+                    long idx = idx_val->as.integer;
+                    if (idx < 0) idx = (long)arr->as.array.count + idx;
+                    if (idx >= 0 && (size_t)idx < arr->as.array.count) {
+                        jamet_value_free(arr->as.array.elements[idx]);
+                        arr->as.array.elements[idx] = jamet_value_copy(new_val);
+                    }
+                }
+            }
+
+            jamet_value_free(idx_val);
+            return new_val;
         }
 
         default:

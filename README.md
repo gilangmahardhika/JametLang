@@ -226,6 +226,7 @@ JametLang/
 │   ├── halo.jmt         # Conto program dasar
 │   ├── test_parser.jmt  # Test parser & interpreter
 │   ├── test_stdlib.jmt  # Test standard library
+│   ├── test_array.jmt   # Test array operations
 │   └── test_simple.jmt  # Test sederhana
 ├── jametlang-vscode/    # VSCode Extension
 │   ├── syntaxes/        # TextMate grammar
@@ -251,6 +252,7 @@ JametLang/
 - **Boolean** — `bener` / `salah`
 - **Input/Output** — `nyerat()` / `moco()`
 - **Standard Library** — Fungsi bawaan kanggo string, matematika, konversi, lan utilitas
+- **Array** — `[1, 2, 3]`, akses `arr[i]`, assignment `arr[i] = val`, negative index
 
 ## Standard Library
 
@@ -288,11 +290,48 @@ JametLang/
 | `dadi_teks(val)` | Konversi dadi string | `dadi_teks(42)` → `"42"` |
 | `jinis(val)` | Entuk jeneng jinis | `jinis(42)` → `"integer"` |
 
+### Fungsi Array
+
+| Fungsi | Keterangan | Conto |
+| ------ | ---------- | ----- |
+| `tambah(arr, elem)` | Tambah elemen ing mburi | `tambah([1,2], 3)` → `[1,2,3]` |
+| `hapus(arr, idx)` | Hapus elemen ing indeks | `hapus([1,2,3], 1)` → `[1,3]` |
+| `gabung(arr1, arr2)` | Gabung loro array | `gabung([1,2], [3,4])` → `[1,2,3,4]` |
+| `balik(arr)` | Balik urutan array | `balik([1,2,3])` → `[3,2,1]` |
+| `urutke(arr)` | Urutke array (ascending) | `urutke([3,1,2])` → `[1,2,3]` |
+| `irisan(arr, mulai, akhir)` | Potong array (slice) | `irisan([1,2,3,4], 1, 3)` → `[2,3]` |
+| `indeks(arr, val)` | Golek indeks elemen | `indeks([10,20,30], 20)` → `1` |
+
 ### Utilitas
 
 | Fungsi | Keterangan | Conto |
 | ------ | ---------- | ----- |
 | `wektu()` | Wektu saiki (detik epoch) | `wektu()` → `1773228105` |
+
+## Array Operations
+
+```jmt
+// Array literal
+variabel angka = [1, 2, 3, 4, 5];
+variabel kosong = [];
+
+// Akses elemen (0-indexed, support negative index)
+nyerat(angka[0]);   // 1
+nyerat(angka[-1]);  // 5
+
+// Assignment elemen
+angka[0] = 10;
+
+// String indexing
+variabel teks = "Halo";
+nyerat(teks[0]);    // H
+
+// Nggawe array ing loop
+variabel arr = [];
+kanggo (variabel i = 0; i < 5; i = i + 1) {
+    arr = tambah(arr, i);
+}
+```
 
 ## Status Saiki
 
@@ -304,7 +343,7 @@ JametLang/
 - [x] CLI / REPL
 - [x] Installer
 - [x] Standard Library (string, math, konversi, utilitas)
-- [ ] Array Operations
+- [x] Array Operations (literal, index, assignment, stdlib functions)
 - [ ] Class / OOP (`kelas`, `anyar`, `piwulang`)
 
 ## VSCode Extension

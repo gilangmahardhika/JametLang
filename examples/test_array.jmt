@@ -1,0 +1,135 @@
+// Test Array Operations
+
+// ==================== Array Literal ====================
+nyerat("=== Array Literal ===");
+
+variabel angka = [1, 2, 3, 4, 5];
+nyerat("angka = " + angka);
+
+variabel kosong_arr = [];
+nyerat("kosong_arr = " + kosong_arr);
+
+variabel campur = [1, "dua", 3.14, bener];
+nyerat("campur = " + campur);
+
+// ==================== Array Access ====================
+nyerat("");
+nyerat("=== Array Access ===");
+
+nyerat("angka[0] = " + angka[0]);
+nyerat("angka[2] = " + angka[2]);
+nyerat("angka[4] = " + angka[4]);
+
+// Negative index
+nyerat("angka[-1] = " + angka[-1]);
+nyerat("angka[-2] = " + angka[-2]);
+
+// ==================== Array Assignment ====================
+nyerat("");
+nyerat("=== Array Assignment ===");
+
+angka[0] = 10;
+nyerat("angka[0] = 10 -> " + angka);
+angka[4] = 50;
+nyerat("angka[4] = 50 -> " + angka);
+
+// ==================== Array Length ====================
+nyerat("");
+nyerat("=== Array Length ===");
+
+nyerat("panjang(angka) = " + panjang(angka));
+nyerat("panjang(kosong_arr) = " + panjang(kosong_arr));
+nyerat("panjang(campur) = " + panjang(campur));
+
+// ==================== Array Functions ====================
+nyerat("");
+nyerat("=== tambah (push) ===");
+
+variabel arr = [1, 2, 3];
+arr = tambah(arr, 4);
+nyerat("tambah([1,2,3], 4) = " + arr);
+
+nyerat("");
+nyerat("=== hapus (remove) ===");
+
+variabel arr2 = [10, 20, 30, 40];
+arr2 = hapus(arr2, 1);
+nyerat("hapus([10,20,30,40], 1) = " + arr2);
+
+nyerat("");
+nyerat("=== gabung (concat) ===");
+
+variabel a = [1, 2, 3];
+variabel b = [4, 5, 6];
+variabel c = gabung(a, b);
+nyerat("gabung([1,2,3], [4,5,6]) = " + c);
+
+nyerat("");
+nyerat("=== balik (reverse) ===");
+
+variabel d = [1, 2, 3, 4, 5];
+nyerat("balik([1,2,3,4,5]) = " + balik(d));
+
+nyerat("");
+nyerat("=== urutke (sort) ===");
+
+variabel acak_arr = [5, 3, 1, 4, 2];
+nyerat("urutke([5,3,1,4,2]) = " + urutke(acak_arr));
+
+variabel str_arr = ["pisang", "apel", "mangga", "durian"];
+nyerat("urutke(str) = " + urutke(str_arr));
+
+nyerat("");
+nyerat("=== irisan (slice) ===");
+
+variabel e = [10, 20, 30, 40, 50];
+nyerat("irisan([10..50], 1, 3) = " + irisan(e, 1, 3));
+nyerat("irisan([10..50], 2) = " + irisan(e, 2));
+
+nyerat("");
+nyerat("=== indeks (indexOf) ===");
+
+variabel f = [10, 20, 30, 40];
+nyerat("indeks([10,20,30,40], 30) = " + indeks(f, 30));
+nyerat("indeks([10,20,30,40], 99) = " + indeks(f, 99));
+
+// ==================== String Index ====================
+nyerat("");
+nyerat("=== String Index ===");
+
+variabel teks = "Halo";
+nyerat("teks[0] = " + teks[0]);
+nyerat("teks[3] = " + teks[3]);
+nyerat("teks[-1] = " + teks[-1]);
+
+// ==================== Loop with Array ====================
+nyerat("");
+nyerat("=== Loop with Array ===");
+
+variabel buah = ["apel", "mangga", "pisang"];
+kanggo (variabel i = 0; i < panjang(buah); i = i + 1) {
+    nyerat("buah[" + i + "] = " + buah[i]);
+}
+
+// ==================== Combined Usage ====================
+nyerat("");
+nyerat("=== Combined ===");
+
+// Build array with loop
+variabel kuadrat = [];
+kanggo (variabel i = 1; i < 6; i = i + 1) {
+    kuadrat = tambah(kuadrat, pangkat(i, 2));
+}
+nyerat("kuadrat 1-5 = " + kuadrat);
+
+// Filter-like: build new array
+variabel genap = [];
+kanggo (variabel i = 0; i < panjang(kuadrat); i = i + 1) {
+    nek (sisa(kuadrat[i], 2) == 0) {
+        genap = tambah(genap, kuadrat[i]);
+    }
+}
+nyerat("genap saka kuadrat = " + genap);
+
+nyerat("");
+nyerat("=== Kabeh test rampung! ===");

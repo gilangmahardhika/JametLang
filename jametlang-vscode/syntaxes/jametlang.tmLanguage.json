@@ -89,7 +89,7 @@
       "patterns": [
         {
           "name": "support.function.builtin.jametlang",
-          "match": "\\b(nyerat|tulung|moco|anyar|panjang|potong|huruf_gedhe|huruf_cilik|ganti|ngandhut|pisah|mutlak|pangkat|akar|acak|bulatke|lantai|langit|sisa|dadi_angka|dadi_desimal|dadi_teks|jinis|wektu)\\b"
+          "match": "\\b(nyerat|tulung|moco|anyar|panjang|potong|huruf_gedhe|huruf_cilik|ganti|ngandhut|pisah|mutlak|pangkat|akar|acak|bulatke|lantai|langit|sisa|dadi_angka|dadi_desimal|dadi_teks|jinis|wektu|tambah|hapus|gabung|balik|urutke|irisan|indeks)\\b"
         }
       ]
     },

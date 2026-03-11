@@ -17,7 +17,10 @@ typedef enum {
     EXPR_GROUPING,
     EXPR_VARIABLE,
     EXPR_ASSIGN,
-    EXPR_CALL
+    EXPR_CALL,
+    EXPR_ARRAY,
+    EXPR_INDEX,
+    EXPR_INDEX_ASSIGN
 } ExprType;
 
 /* Statement types */
@@ -68,6 +71,19 @@ struct Expr {
             Expr **arguments;
             size_t count;
         } call;
+        struct {
+            Expr **elements;
+            size_t count;
+        } array;
+        struct {
+            Expr *object;
+            Expr *index;
+        } index_access;
+        struct {
+            Expr *object;
+            Expr *index;
+            Expr *value;
+        } index_assign;
     } as;
 };
 

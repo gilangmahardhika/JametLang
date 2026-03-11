@@ -380,6 +380,151 @@ static JametValue *fn_jinis(JametValue **args, size_t count) {
     }
 }
 
+/* ==================== Array Functions ==================== */
+
+/* tambah(arr, elem) - Push element to array, returns the array */
+static JametValue *fn_tambah(JametValue **args, size_t count) {
+    if (count < 2 || args[0]->type != JAMET_ARRAY) {
+        return jamet_value_new(JAMET_NONE);
+    }
+
+    /* We return a new array with the element appended */
+    JametValue *result = jamet_value_copy(args[0]);
+    jamet_array_push(result, jamet_value_copy(args[1]));
+    return result;
+}
+
+/* hapus(arr, index) - Remove element at index, returns new array */
+static JametValue *fn_hapus(JametValue **args, size_t count) {
+    if (count < 2 || args[0]->type != JAMET_ARRAY || args[1]->type != JAMET_INTEGER) {
+        return jamet_value_new(JAMET_NONE);
+    }
+
+    long idx = args[1]->as.integer;
+    size_t arr_count = args[0]->as.array.count;
+    if (idx < 0) idx = (long)arr_count + idx;
+    if (idx < 0 || (size_t)idx >= arr_count) {
+        return jamet_value_copy(args[0]);
+    }
+
+    JametValue *result = jamet_array_new(arr_count > 1 ? arr_count - 1 : 1);
+    for (size_t i = 0; i < arr_count; i++) {
+        if (i != (size_t)idx) {
+            jamet_array_push(result, jamet_value_copy(args[0]->as.array.elements[i]));
+        }
+    }
+    return result;
+}
+
+/* gabung(arr1, arr2) - Concatenate two arrays */
+static JametValue *fn_gabung(JametValue **args, size_t count) {
+    if (count < 2 || args[0]->type != JAMET_ARRAY || args[1]->type != JAMET_ARRAY) {
+        return jamet_value_new(JAMET_NONE);
+    }
+
+    size_t total = args[0]->as.array.count + args[1]->as.array.count;
+    JametValue *result = jamet_array_new(total > 0 ? total : 8);
+    for (size_t i = 0; i < args[0]->as.array.count; i++) {
+        jamet_array_push(result, jamet_value_copy(args[0]->as.array.elements[i]));
+    }
+    for (size_t i = 0; i < args[1]->as.array.count; i++) {
+        jamet_array_push(result, jamet_value_copy(args[1]->as.array.elements[i]));
+    }
+    return result;
+}
+
+/* balik(arr) - Reverse array */
+static JametValue *fn_balik(JametValue **args, size_t count) {
+    if (count < 1 || args[0]->type != JAMET_ARRAY) {
+        return jamet_value_new(JAMET_NONE);
+    }
+
+    size_t n = args[0]->as.array.count;
+    JametValue *result = jamet_array_new(n > 0 ? n : 8);
+    for (size_t i = 0; i < n; i++) {
+        jamet_array_push(result, jamet_value_copy(args[0]->as.array.elements[n - 1 - i]));
+    }
+    return result;
+}
+
+/* Helper comparison for sorting */
+static int jamet_compare(const void *a, const void *b) {
+    JametValue *va = *(JametValue **)a;
+    JametValue *vb = *(JametValue **)b;
+
+    /* Compare integers */
+    if (va->type == JAMET_INTEGER && vb->type == JAMET_INTEGER) {
+        if (va->as.integer < vb->as.integer) return -1;
+        if (va->as.integer > vb->as.integer) return 1;
+        return 0;
+    }
+    /* Compare floats or mixed numeric */
+    if ((va->type == JAMET_INTEGER || va->type == JAMET_FLOAT) &&
+        (vb->type == JAMET_INTEGER || vb->type == JAMET_FLOAT)) {
+        double da = va->type == JAMET_FLOAT ? va->as.float_val : (double)va->as.integer;
+        double db = vb->type == JAMET_FLOAT ? vb->as.float_val : (double)vb->as.integer;
+        if (da < db) return -1;
+        if (da > db) return 1;
+        return 0;
+    }
+    /* Compare strings */
+    if (va->type == JAMET_STRING && vb->type == JAMET_STRING) {
+        return strcmp(va->as.string.value, vb->as.string.value);
+    }
+    return 0;
+}
+
+/* urutke(arr) - Sort array (ascending) */
+static JametValue *fn_urutke(JametValue **args, size_t count) {
+    if (count < 1 || args[0]->type != JAMET_ARRAY) {
+        return jamet_value_new(JAMET_NONE);
+    }
+
+    JametValue *result = jamet_value_copy(args[0]);
+    if (result->as.array.count > 1) {
+        qsort(result->as.array.elements, result->as.array.count,
+              sizeof(JametValue *), jamet_compare);
+    }
+    return result;
+}
+
+/* irisan(arr, mulai, akhir) - Slice array */
+static JametValue *fn_irisan(JametValue **args, size_t count) {
+    if (count < 2 || args[0]->type != JAMET_ARRAY || args[1]->type != JAMET_INTEGER) {
+        return jamet_value_new(JAMET_NONE);
+    }
+
+    size_t arr_count = args[0]->as.array.count;
+    long start = args[1]->as.integer;
+    long end = (count >= 3 && args[2]->type == JAMET_INTEGER) ? args[2]->as.integer : (long)arr_count;
+
+    if (start < 0) start = (long)arr_count + start;
+    if (end < 0) end = (long)arr_count + end;
+    if (start < 0) start = 0;
+    if (end > (long)arr_count) end = (long)arr_count;
+    if (start >= end) return jamet_array_new(1);
+
+    JametValue *result = jamet_array_new((size_t)(end - start));
+    for (long i = start; i < end; i++) {
+        jamet_array_push(result, jamet_value_copy(args[0]->as.array.elements[i]));
+    }
+    return result;
+}
+
+/* indeks(arr, val) - Find index of value in array, returns -1 if not found */
+static JametValue *fn_indeks(JametValue **args, size_t count) {
+    if (count < 2 || args[0]->type != JAMET_ARRAY) {
+        return jamet_integer_new(-1);
+    }
+
+    for (size_t i = 0; i < args[0]->as.array.count; i++) {
+        if (jamet_value_equals(args[0]->as.array.elements[i], args[1])) {
+            return jamet_integer_new((long)i);
+        }
+    }
+    return jamet_integer_new(-1);
+}
+
 /* ==================== Utility Functions ==================== */
 
 /* wektu() - Get current time in seconds since epoch */
@@ -426,6 +571,15 @@ static const StdlibEntry stdlib_functions[] = {
     {"dadi_desimal", fn_dadi_desimal},
     {"dadi_teks",    fn_dadi_teks},
     {"jinis",        fn_jinis},
+
+    /* Array functions */
+    {"tambah",       fn_tambah},
+    {"hapus",        fn_hapus},
+    {"gabung",       fn_gabung},
+    {"balik",        fn_balik},
+    {"urutke",       fn_urutke},
+    {"irisan",       fn_irisan},
+    {"indeks",       fn_indeks},
 
     /* Utility */
     {"wektu",        fn_wektu},

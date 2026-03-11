@@ -107,15 +107,13 @@ JametValue *jamet_value_copy(JametValue *value) {
             break;
         case JAMET_ARRAY:
             copy->as.array.count = value->as.array.count;
-            copy->as.array.capacity = value->as.array.capacity;
-            if (value->as.array.count > 0) {
-                copy->as.array.elements = (JametValue **)malloc(
-                    sizeof(JametValue *) * value->as.array.capacity
-                );
-                EXIT_IF_NULL(copy->as.array.elements, "Ora bisa nyalin array");
-                for (size_t i = 0; i < value->as.array.count; i++) {
-                    copy->as.array.elements[i] = jamet_value_copy(value->as.array.elements[i]);
-                }
+            copy->as.array.capacity = value->as.array.capacity > 0 ? value->as.array.capacity : 8;
+            copy->as.array.elements = (JametValue **)malloc(
+                sizeof(JametValue *) * copy->as.array.capacity
+            );
+            EXIT_IF_NULL(copy->as.array.elements, "Ora bisa nyalin array");
+            for (size_t i = 0; i < value->as.array.count; i++) {
+                copy->as.array.elements[i] = jamet_value_copy(value->as.array.elements[i]);
             }
             break;
         default:
@@ -231,11 +229,30 @@ char *jamet_value_to_string(JametValue *value) {
             snprintf(buffer, len + 1, "\"%s\"", value->as.string.value);
             break;
 
-        case JAMET_ARRAY:
-            len = snprintf(NULL, 0, "Array[%zu]", value->as.array.count);
-            buffer = (char *)malloc(len + 1);
-            snprintf(buffer, len + 1, "Array[%zu]", value->as.array.count);
+        case JAMET_ARRAY: {
+            /* Build string like [elem1, elem2, ...] */
+            size_t buf_size = 256;
+            buffer = (char *)malloc(buf_size);
+            buffer[0] = '[';
+            size_t pos = 1;
+            for (size_t i = 0; i < value->as.array.count; i++) {
+                char *elem_str = jamet_value_to_string(value->as.array.elements[i]);
+                size_t elem_len = strlen(elem_str);
+                size_t sep_len = (i > 0) ? 2 : 0;
+                /* Grow buffer if needed */
+                while (pos + elem_len + sep_len + 2 > buf_size) {
+                    buf_size *= 2;
+                    buffer = (char *)realloc(buffer, buf_size);
+                }
+                if (i > 0) { buffer[pos++] = ','; buffer[pos++] = ' '; }
+                memcpy(buffer + pos, elem_str, elem_len);
+                pos += elem_len;
+                free(elem_str);
+            }
+            buffer[pos++] = ']';
+            buffer[pos] = '\0';
             break;
+        }
 
         default:
             len = snprintf(NULL, 0, "(jinis ora dikenal)");
