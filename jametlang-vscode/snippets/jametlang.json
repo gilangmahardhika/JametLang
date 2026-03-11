@@ -1,0 +1,87 @@
+{
+  "Variable Declaration": {
+    "prefix": "variabel",
+    "body": ["variabel ${1:nama} = ${2:nilai};"],
+    "description": "Deklarasi variabel (variable declaration)"
+  },
+  "Print": {
+    "prefix": "nyerat",
+    "body": ["nyerat(${1:\"pesan\"});"],
+    "description": "Nyerat output (print)"
+  },
+  "Read Input": {
+    "prefix": "moco",
+    "body": ["variabel ${1:input} = moco();"],
+    "description": "Moco input (read input)"
+  },
+  "If Statement": {
+    "prefix": "nek",
+    "body": [
+      "nek (${1:kondisi}) {",
+      "\t${2:// kode}",
+      "}"
+    ],
+    "description": "Kondisi nek (if statement)"
+  },
+  "If-Else Statement": {
+    "prefix": "nekkajaba",
+    "body": [
+      "nek (${1:kondisi}) {",
+      "\t${2:// kode nek bener}",
+      "} kajaba {",
+      "\t${3:// kode nek salah}",
+      "}"
+    ],
+    "description": "Kondisi nek-kajaba (if-else statement)"
+  },
+  "For Loop": {
+    "prefix": "kanggo",
+    "body": [
+      "kanggo (variabel ${1:i} = ${2:0}; ${1:i} < ${3:10}; ${1:i} = ${1:i} + 1) {",
+      "\t${4:// kode}",
+      "}"
+    ],
+    "description": "Loop kanggo (for loop)"
+  },
+  "While Loop": {
+    "prefix": "sawise",
+    "body": [
+      "sawise (${1:kondisi}) {",
+      "\t${2:// kode}",
+      "}"
+    ],
+    "description": "Loop sawise (while loop)"
+  },
+  "Function Declaration": {
+    "prefix": "fungsi",
+    "body": [
+      "fungsi ${1:nama}(${2:params}) {",
+      "\t${3:// kode}",
+      "\tbalekno ${4:nilai};",
+      "}"
+    ],
+    "description": "Deklarasi fungsi (function declaration)"
+  },
+  "Return": {
+    "prefix": "balekno",
+    "body": ["balekno ${1:nilai};"],
+    "description": "Balekno nilai (return value)"
+  },
+  "Break": {
+    "prefix": "pegat",
+    "body": ["pegat;"],
+    "description": "Pegat loop (break)"
+  },
+  "Continue": {
+    "prefix": "terusake",
+    "body": ["terusake;"],
+    "description": "Terusake loop (continue)"
+  },
+  "Block Comment": {
+    "prefix": "komentar",
+    "body": [
+      "/* ${1:komentar} */"
+    ],
+    "description": "Komentar blok (block comment)"
+  }
+}

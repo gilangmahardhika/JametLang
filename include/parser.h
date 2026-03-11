@@ -121,6 +121,9 @@ typedef struct {
     size_t current;
 } Parser;
 
+/* Set quiet mode (suppress => output in file execution) */
+void parser_set_quiet(int quiet);
+
 /* Create parser */
 Parser *parser_new(Token *tokens, size_t count);
 

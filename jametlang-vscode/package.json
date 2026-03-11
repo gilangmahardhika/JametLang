@@ -1,0 +1,54 @@
+{
+  "name": "jametlang",
+  "displayName": "JametLang",
+  "description": "Syntax highlighting and language support for JametLang - Bahasa Pemrograman Basa Jawa",
+  "version": "0.1.0",
+  "publisher": "jametlang",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "keywords": [
+    "jametlang",
+    "jamet",
+    "jawa",
+    "javanese",
+    "bahasa jawa"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jametlang/JametLang"
+  },
+  "icon": "images/icon.png",
+  "contributes": {
+    "languages": [
+      {
+        "id": "jametlang",
+        "aliases": [
+          "JametLang",
+          "jamet",
+          "jmt"
+        ],
+        "extensions": [
+          ".jmt"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "jametlang",
+        "scopeName": "source.jametlang",
+        "path": "./syntaxes/jametlang.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "jametlang",
+        "path": "./snippets/jametlang.json"
+      }
+    ]
+  }
+}

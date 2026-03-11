@@ -5,6 +5,7 @@
 
 #include "jamet_types.h"
 #include "lexer.h"
+#include "parser.h"
 #include "repl.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,8 +76,23 @@ int run_file(const char *filename) {
     }
 
     if (!has_error) {
-        printf("Sukses! %zu token didapet.\n", count - 1);
-        /* TODO: Implement parsing and evaluation */
+        /* Parse and execute */
+        parser_set_quiet(1);
+        Parser *parser = parser_new(tokens, count);
+        size_t stmt_count = 0;
+        Stmt **statements = parser_parse_program(parser, &stmt_count);
+
+        /* Execute statements */
+        for (size_t i = 0; i < stmt_count; i++) {
+            exec_stmt(statements[i]);
+        }
+
+        /* Cleanup */
+        for (size_t i = 0; i < stmt_count; i++) {
+            stmt_free(statements[i]);
+        }
+        free(statements);
+        parser_free(parser);
     }
 
     lexer_free_tokens(tokens, count);

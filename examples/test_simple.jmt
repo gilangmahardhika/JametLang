@@ -1,0 +1,10 @@
+/* Simple test */
+
+variabel x = 10;
+nyerat(x);
+
+variabel i = 0;
+sawise (i < 3) {
+    nyerat(i);
+    i = i + 1;
+}

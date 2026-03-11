@@ -104,7 +104,7 @@ int lexer_match(Lexer *lexer, char expected) {
     return 1;
 }
 
-/* Mlompati spasi putih */
+/* Mlompati spasi putih lan komentar */
 void lexer_skip_whitespace(Lexer *lexer) {
     while (!lexer_is_at_end(lexer)) {
         char c = lexer_peek(lexer);
@@ -119,6 +119,32 @@ void lexer_skip_whitespace(Lexer *lexer) {
                 lexer->column = 1;
                 lexer_advance(lexer);
                 break;
+            case '/':
+                if (lexer_peek_next(lexer) == '/') {
+                    /* Komentar siji baris // */
+                    while (!lexer_is_at_end(lexer) && lexer_peek(lexer) != '\n') {
+                        lexer_advance(lexer);
+                    }
+                    break;
+                } else if (lexer_peek_next(lexer) == '*') {
+                    /* Komentar blok (block comment) */
+                    lexer_advance(lexer); /* / */
+                    lexer_advance(lexer); /* * */
+                    while (!lexer_is_at_end(lexer)) {
+                        if (lexer_peek(lexer) == '\n') {
+                            lexer->line++;
+                            lexer->column = 1;
+                        }
+                        if (lexer_peek(lexer) == '*' && lexer_peek_next(lexer) == '/') {
+                            lexer_advance(lexer); /* * */
+                            lexer_advance(lexer); /* / */
+                            break;
+                        }
+                        lexer_advance(lexer);
+                    }
+                    break;
+                }
+                return;
             default:
                 return;
         }

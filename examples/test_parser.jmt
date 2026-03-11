@@ -1,0 +1,48 @@
+/* Test Parser Features */
+
+/* While loop (sawise) */
+variabel i = 0;
+sawise (i < 5) {
+    nyerat("While: " + i);
+    i = i + 1;
+}
+
+/* For loop (kanggo) */
+nyerat("--- For Loop ---");
+kanggo (variabel j = 0; j < 3; j = j + 1) {
+    nyerat("For: " + j);
+}
+
+/* Function declaration (fungsi) */
+fungsi tambah(a, b) {
+    balekno a + b;
+}
+
+nyerat("--- Function Call ---");
+variabel hasil = tambah(10, 5);
+nyerat("10 + 5 = " + hasil);
+
+/* Function with control flow */
+fungsi cek_ganjil(n) {
+    nek (n % 2 == 1) {
+        balekno bener;
+    } kajaba {
+        balekno salah;
+    }
+}
+
+nyerat("--- Check Odd/Even ---");
+nyerat("3 ganjil? " + cek_ganjil(3));
+nyerat("4 ganjil? " + cek_ganjil(4));
+
+/* Break and Continue */
+nyerat("--- Break/Continue ---");
+kanggo (variabel k = 0; k < 10; k = k + 1) {
+    nek (k == 5) {
+        pegat;
+    }
+    nek (k == 2) {
+        terusake;
+    }
+    nyerat("k = " + k);
+}

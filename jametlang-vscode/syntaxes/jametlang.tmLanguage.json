@@ -1,0 +1,193 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "JametLang",
+  "scopeName": "source.jametlang",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#keywords-control" },
+    { "include": "#keywords-declaration" },
+    { "include": "#keywords-builtin" },
+    { "include": "#constants" },
+    { "include": "#operators" },
+    { "include": "#function-call" },
+    { "include": "#function-declaration" },
+    { "include": "#variables" },
+    { "include": "#punctuation" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.jametlang",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.jametlang",
+          "begin": "/\\*",
+          "end": "\\*/",
+          "beginCaptures": {
+            "0": { "name": "punctuation.definition.comment.begin.jametlang" }
+          },
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.comment.end.jametlang" }
+          }
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.jametlang",
+          "begin": "\"",
+          "end": "\"",
+          "beginCaptures": {
+            "0": { "name": "punctuation.definition.string.begin.jametlang" }
+          },
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.string.end.jametlang" }
+          },
+          "patterns": [
+            {
+              "name": "constant.character.escape.jametlang",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.jametlang",
+          "match": "\\b[0-9]+\\.[0-9]+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.jametlang",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    },
+    "keywords-control": {
+      "patterns": [
+        {
+          "name": "keyword.control.jametlang",
+          "match": "\\b(nek|kajaba|kanggo|kango|sawise|balekno|balekne|pegat|terusake)\\b"
+        }
+      ]
+    },
+    "keywords-declaration": {
+      "patterns": [
+        {
+          "name": "keyword.declaration.jametlang",
+          "match": "\\b(variabel|fungsi|kelas|piwulang)\\b"
+        }
+      ]
+    },
+    "keywords-builtin": {
+      "patterns": [
+        {
+          "name": "support.function.builtin.jametlang",
+          "match": "\\b(nyerat|tulung|moco|anyar)\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.true.jametlang",
+          "match": "\\bbener\\b"
+        },
+        {
+          "name": "constant.language.boolean.false.jametlang",
+          "match": "\\bsalah\\b"
+        },
+        {
+          "name": "constant.language.null.jametlang",
+          "match": "\\bkosong\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.comparison.jametlang",
+          "match": "==|!=|>=|<=|>|<"
+        },
+        {
+          "name": "keyword.operator.assignment.jametlang",
+          "match": "\\+=|-=|="
+        },
+        {
+          "name": "keyword.operator.arithmetic.jametlang",
+          "match": "\\+|-|\\*|/|%"
+        },
+        {
+          "name": "keyword.operator.logical.jametlang",
+          "match": "\\b(lan|utawa|ora)\\b"
+        }
+      ]
+    },
+    "function-declaration": {
+      "patterns": [
+        {
+          "match": "\\b(fungsi)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(",
+          "captures": {
+            "1": { "name": "keyword.declaration.jametlang" },
+            "2": { "name": "entity.name.function.jametlang" }
+          }
+        }
+      ]
+    },
+    "function-call": {
+      "patterns": [
+        {
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(",
+          "captures": {
+            "1": { "name": "entity.name.function.call.jametlang" }
+          }
+        }
+      ]
+    },
+    "variables": {
+      "patterns": [
+        {
+          "match": "\\b(variabel)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.declaration.jametlang" },
+            "2": { "name": "variable.other.jametlang" }
+          }
+        },
+        {
+          "name": "variable.other.jametlang",
+          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.separator.semicolon.jametlang",
+          "match": ";"
+        },
+        {
+          "name": "punctuation.separator.comma.jametlang",
+          "match": ","
+        },
+        {
+          "name": "punctuation.bracket.curly.jametlang",
+          "match": "[{}]"
+        },
+        {
+          "name": "punctuation.bracket.round.jametlang",
+          "match": "[()]"
+        },
+        {
+          "name": "punctuation.bracket.square.jametlang",
+          "match": "[\\[\\]]"
+        }
+      ]
+    }
+  }
+}
