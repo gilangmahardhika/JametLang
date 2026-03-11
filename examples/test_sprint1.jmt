@@ -1,0 +1,93 @@
+// Test Sprint 1: Logging, Regex, OS/Exec/Env
+
+// ==================== 1.1 Logging ====================
+nyerat("=== Logging ===");
+
+// Log messages (output ke stderr)
+catat("Iki pesan info");
+catat_peringatan("Iki pesan peringatan");
+catat_galat("Iki pesan galat");
+catat_debug("Iki pesan debug - ora katon amarga level default = 3 (INFO)");
+
+// Set log level ke DEBUG (4)
+catat_level(4);
+catat_debug("Saiki pesan debug katon!");
+
+// Set balik ke INFO
+catat_level(3);
+
+// Log ke file
+catat_ke_file("/tmp/jamet_test.log", "Test log ke file");
+nyerat("Log ke file: " + baca_file("/tmp/jamet_test.log"));
+
+// ==================== 1.2 Regex ====================
+nyerat("");
+nyerat("=== Regex ===");
+
+// regex_cocok - test match
+nyerat("Cocok email: " + regex_cocok("[a-zA-Z0-9.]+@[a-zA-Z]+\\.[a-z]+", "budi@gmail.com"));
+nyerat("Cocok angka: " + regex_cocok("^[0-9]+$", "12345"));
+nyerat("Cocok angka (salah): " + regex_cocok("^[0-9]+$", "abc123"));
+
+// regex_golek - find first match
+variabel pertama = regex_golek("[0-9]+", "abc123def456ghi");
+nyerat("Golek pertama: " + pertama);
+
+// regex_golek_kabeh - find all matches
+variabel kabeh = regex_golek_kabeh("[0-9]+", "abc123def456ghi789");
+nyerat("Golek kabeh: " + kabeh);
+nyerat("Jumlah match: " + panjang(kabeh));
+
+// regex_ganti - replace
+variabel diganti = regex_ganti("[0-9]+", "harga: 100 rupiah dan 200 rupiah", "XXX");
+nyerat("Ganti angka: " + diganti);
+
+variabel bersih = regex_ganti("[ \t]+", "kata   siji    loro    telu", " ");
+nyerat("Bersihke spasi: " + bersih);
+
+// regex_pisah - split by pattern
+variabel pisahan = regex_pisah("[,; \t]+", "siji, loro; telu  papat");
+nyerat("Pisah: " + pisahan);
+
+// More regex tests
+variabel ip_valid = regex_cocok("^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$", "192.168.1.1");
+nyerat("IP valid: " + ip_valid);
+
+variabel tags = regex_golek_kabeh("<[^>]+>", "<h1>Judul</h1><p>Isi</p>");
+nyerat("HTML tags: " + tags);
+
+// ==================== 1.3 OS / Exec / Env ====================
+nyerat("");
+nyerat("=== OS / Exec / Env ===");
+
+// direktori_saiki
+variabel cwd = direktori_saiki();
+nyerat("Direktori saiki: " + cwd);
+
+// env_njupuk
+variabel home = env_njupuk("HOME");
+nyerat("HOME: " + home);
+
+variabel path = env_njupuk("USER");
+nyerat("USER: " + path);
+
+// env_setel
+env_setel("JAMET_TEST", "halo_saka_jamet");
+nyerat("JAMET_TEST: " + env_njupuk("JAMET_TEST"));
+
+// jalan_perintah
+variabel tanggal = jalan_perintah("date +%Y-%m-%d");
+nyerat("Tanggal (shell): " + tanggal);
+
+variabel hostname = jalan_perintah("hostname");
+nyerat("Hostname: " + hostname);
+
+variabel wc = jalan_perintah("echo 'siji loro telu' | wc -w");
+nyerat("Word count: " + wc);
+
+// List files
+variabel files = jalan_perintah("ls examples/*.jmt | head -5");
+nyerat("Files:\n" + files);
+
+nyerat("");
+nyerat("=== Kabeh test rampung! ===");

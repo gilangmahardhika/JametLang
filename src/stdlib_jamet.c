@@ -18,6 +18,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <errno.h>
+#include <regex.h>
 #include <CommonCrypto/CommonDigest.h>
 #include <CommonCrypto/CommonHMAC.h>
 
@@ -1480,6 +1481,292 @@ static JametValue *fn_csv_format(JametValue **args, size_t count) {
     return result;
 }
 
+/* ==================== Logging Functions ==================== */
+
+static int log_level_enabled = 3; /* 0=OFF, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG */
+
+/* Helper: get timestamp prefix for log */
+static void log_write(FILE *out, const char *level, const char *msg) {
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    char ts[32];
+    strftime(ts, sizeof(ts), "%Y-%m-%d %H:%M:%S", t);
+    fprintf(out, "[%s] [%s] %s\n", ts, level, msg);
+    fflush(out);
+}
+
+/* catat(pesan) - Log info message to stderr */
+static JametValue *fn_catat(JametValue **args, size_t count) {
+    if (count < 1 || args[0]->type != JAMET_STRING) return jamet_value_new(JAMET_NONE);
+    if (log_level_enabled >= 3) log_write(stderr, "INFO", args[0]->as.string.value);
+    return jamet_value_new(JAMET_NONE);
+}
+
+/* catat_peringatan(pesan) - Log warning */
+static JametValue *fn_catat_peringatan(JametValue **args, size_t count) {
+    if (count < 1 || args[0]->type != JAMET_STRING) return jamet_value_new(JAMET_NONE);
+    if (log_level_enabled >= 2) log_write(stderr, "PERINGATAN", args[0]->as.string.value);
+    return jamet_value_new(JAMET_NONE);
+}
+
+/* catat_galat(pesan) - Log error */
+static JametValue *fn_catat_galat(JametValue **args, size_t count) {
+    if (count < 1 || args[0]->type != JAMET_STRING) return jamet_value_new(JAMET_NONE);
+    if (log_level_enabled >= 1) log_write(stderr, "GALAT", args[0]->as.string.value);
+    return jamet_value_new(JAMET_NONE);
+}
+
+/* catat_debug(pesan) - Log debug */
+static JametValue *fn_catat_debug(JametValue **args, size_t count) {
+    if (count < 1 || args[0]->type != JAMET_STRING) return jamet_value_new(JAMET_NONE);
+    if (log_level_enabled >= 4) log_write(stderr, "DEBUG", args[0]->as.string.value);
+    return jamet_value_new(JAMET_NONE);
+}
+
+/* catat_ke_file(path, pesan) - Log to file */
+static JametValue *fn_catat_ke_file(JametValue **args, size_t count) {
+    if (count < 2 || args[0]->type != JAMET_STRING || args[1]->type != JAMET_STRING)
+        return jamet_boolean_new(0);
+
+    FILE *f = fopen(args[0]->as.string.value, "a");
+    if (!f) return jamet_boolean_new(0);
+    log_write(f, "INFO", args[1]->as.string.value);
+    fclose(f);
+    return jamet_boolean_new(1);
+}
+
+/* catat_level(level) - Set log level: 0=OFF, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG */
+static JametValue *fn_catat_level(JametValue **args, size_t count) {
+    if (count < 1 || args[0]->type != JAMET_INTEGER) return jamet_value_new(JAMET_NONE);
+    log_level_enabled = (int)args[0]->as.integer;
+    if (log_level_enabled < 0) log_level_enabled = 0;
+    if (log_level_enabled > 4) log_level_enabled = 4;
+    return jamet_integer_new(log_level_enabled);
+}
+
+/* ==================== Regular Expression Functions ==================== */
+
+/* regex_cocok(pola, teks) - Test if text matches regex pattern */
+static JametValue *fn_regex_cocok(JametValue **args, size_t count) {
+    if (count < 2 || args[0]->type != JAMET_STRING || args[1]->type != JAMET_STRING)
+        return jamet_boolean_new(0);
+
+    regex_t reg;
+    if (regcomp(&reg, args[0]->as.string.value, REG_EXTENDED | REG_NOSUB) != 0) {
+        return jamet_boolean_new(0);
+    }
+    int result = regexec(&reg, args[1]->as.string.value, 0, NULL, 0);
+    regfree(&reg);
+    return jamet_boolean_new(result == 0);
+}
+
+/* regex_golek(pola, teks) - Find first match, return string or kosong */
+static JametValue *fn_regex_golek(JametValue **args, size_t count) {
+    if (count < 2 || args[0]->type != JAMET_STRING || args[1]->type != JAMET_STRING)
+        return jamet_value_new(JAMET_NONE);
+
+    regex_t reg;
+    if (regcomp(&reg, args[0]->as.string.value, REG_EXTENDED) != 0) {
+        return jamet_value_new(JAMET_NONE);
+    }
+    regmatch_t match;
+    if (regexec(&reg, args[1]->as.string.value, 1, &match, 0) == 0) {
+        size_t len = match.rm_eo - match.rm_so;
+        char *buf = (char *)malloc(len + 1);
+        strncpy(buf, args[1]->as.string.value + match.rm_so, len);
+        buf[len] = '\0';
+        JametValue *result = jamet_string_new(buf);
+        free(buf);
+        regfree(&reg);
+        return result;
+    }
+    regfree(&reg);
+    return jamet_value_new(JAMET_NONE);
+}
+
+/* regex_golek_kabeh(pola, teks) - Find all matches, return array of strings */
+static JametValue *fn_regex_golek_kabeh(JametValue **args, size_t count) {
+    if (count < 2 || args[0]->type != JAMET_STRING || args[1]->type != JAMET_STRING)
+        return jamet_array_new(0);
+
+    regex_t reg;
+    if (regcomp(&reg, args[0]->as.string.value, REG_EXTENDED) != 0) {
+        return jamet_array_new(0);
+    }
+
+    JametValue *arr = jamet_array_new(8);
+    const char *cursor = args[1]->as.string.value;
+    regmatch_t match;
+
+    while (regexec(&reg, cursor, 1, &match, 0) == 0) {
+        size_t len = match.rm_eo - match.rm_so;
+        char *buf = (char *)malloc(len + 1);
+        strncpy(buf, cursor + match.rm_so, len);
+        buf[len] = '\0';
+        jamet_array_push(arr, jamet_string_new(buf));
+        free(buf);
+        cursor += match.rm_eo;
+        if (match.rm_so == match.rm_eo) cursor++; /* avoid infinite loop on zero-length match */
+        if (*cursor == '\0') break;
+    }
+    regfree(&reg);
+    return arr;
+}
+
+/* regex_ganti(pola, teks, pengganti) - Replace all matches with replacement */
+static JametValue *fn_regex_ganti(JametValue **args, size_t count) {
+    if (count < 3 || args[0]->type != JAMET_STRING ||
+        args[1]->type != JAMET_STRING || args[2]->type != JAMET_STRING)
+        return jamet_value_new(JAMET_NONE);
+
+    regex_t reg;
+    if (regcomp(&reg, args[0]->as.string.value, REG_EXTENDED) != 0) {
+        return jamet_value_copy(args[1]);
+    }
+
+    const char *src = args[1]->as.string.value;
+    const char *repl = args[2]->as.string.value;
+    size_t repl_len = strlen(repl);
+
+    size_t buf_cap = strlen(src) * 2 + 64;
+    char *buf = (char *)malloc(buf_cap);
+    size_t buf_pos = 0;
+    regmatch_t match;
+
+    while (regexec(&reg, src, 1, &match, 0) == 0) {
+        /* Copy text before match */
+        size_t pre_len = match.rm_so;
+        while (buf_pos + pre_len + repl_len + 1 >= buf_cap) {
+            buf_cap *= 2;
+            buf = (char *)realloc(buf, buf_cap);
+        }
+        memcpy(buf + buf_pos, src, pre_len);
+        buf_pos += pre_len;
+        /* Copy replacement */
+        memcpy(buf + buf_pos, repl, repl_len);
+        buf_pos += repl_len;
+        src += match.rm_eo;
+        if (match.rm_so == match.rm_eo) {
+            if (*src) { buf[buf_pos++] = *src++; }
+            else break;
+        }
+    }
+    /* Copy remainder */
+    size_t rest = strlen(src);
+    while (buf_pos + rest + 1 >= buf_cap) { buf_cap *= 2; buf = (char *)realloc(buf, buf_cap); }
+    memcpy(buf + buf_pos, src, rest);
+    buf_pos += rest;
+    buf[buf_pos] = '\0';
+
+    JametValue *result = jamet_string_new(buf);
+    free(buf);
+    regfree(&reg);
+    return result;
+}
+
+/* regex_pisah(pola, teks) - Split text by regex pattern */
+static JametValue *fn_regex_pisah(JametValue **args, size_t count) {
+    if (count < 2 || args[0]->type != JAMET_STRING || args[1]->type != JAMET_STRING)
+        return jamet_array_new(0);
+
+    regex_t reg;
+    if (regcomp(&reg, args[0]->as.string.value, REG_EXTENDED) != 0) {
+        JametValue *arr = jamet_array_new(1);
+        jamet_array_push(arr, jamet_value_copy(args[1]));
+        return arr;
+    }
+
+    JametValue *arr = jamet_array_new(8);
+    const char *cursor = args[1]->as.string.value;
+    regmatch_t match;
+
+    while (regexec(&reg, cursor, 1, &match, 0) == 0) {
+        /* Add text before the match */
+        size_t len = match.rm_so;
+        char *buf = (char *)malloc(len + 1);
+        strncpy(buf, cursor, len);
+        buf[len] = '\0';
+        jamet_array_push(arr, jamet_string_new(buf));
+        free(buf);
+        cursor += match.rm_eo;
+        if (match.rm_so == match.rm_eo) {
+            if (*cursor) cursor++;
+            else break;
+        }
+    }
+    /* Add remainder */
+    jamet_array_push(arr, jamet_string_new(cursor));
+    regfree(&reg);
+    return arr;
+}
+
+/* ==================== OS / Exec / Env Functions ==================== */
+
+/* env_njupuk(nama) - Get environment variable */
+static JametValue *fn_env_njupuk(JametValue **args, size_t count) {
+    if (count < 1 || args[0]->type != JAMET_STRING) return jamet_value_new(JAMET_NONE);
+    const char *val = getenv(args[0]->as.string.value);
+    if (!val) return jamet_value_new(JAMET_NONE);
+    return jamet_string_new(val);
+}
+
+/* env_setel(nama, nilai) - Set environment variable */
+static JametValue *fn_env_setel(JametValue **args, size_t count) {
+    if (count < 2 || args[0]->type != JAMET_STRING || args[1]->type != JAMET_STRING)
+        return jamet_boolean_new(0);
+    int result = setenv(args[0]->as.string.value, args[1]->as.string.value, 1);
+    return jamet_boolean_new(result == 0);
+}
+
+/* jalan_perintah(cmd) - Execute shell command, return output string */
+static JametValue *fn_jalan_perintah(JametValue **args, size_t count) {
+    if (count < 1 || args[0]->type != JAMET_STRING) return jamet_value_new(JAMET_NONE);
+
+    FILE *fp = popen(args[0]->as.string.value, "r");
+    if (!fp) return jamet_value_new(JAMET_NONE);
+
+    size_t buf_cap = 4096;
+    char *buf = (char *)malloc(buf_cap);
+    size_t buf_pos = 0;
+    char chunk[1024];
+
+    while (fgets(chunk, sizeof(chunk), fp)) {
+        size_t len = strlen(chunk);
+        while (buf_pos + len + 1 >= buf_cap) { buf_cap *= 2; buf = (char *)realloc(buf, buf_cap); }
+        memcpy(buf + buf_pos, chunk, len);
+        buf_pos += len;
+    }
+    pclose(fp);
+    buf[buf_pos] = '\0';
+
+    /* Trim trailing newline */
+    if (buf_pos > 0 && buf[buf_pos - 1] == '\n') buf[buf_pos - 1] = '\0';
+
+    JametValue *result = jamet_string_new(buf);
+    free(buf);
+    return result;
+}
+
+/* keluar(kode?) - Exit program with optional exit code */
+static JametValue *fn_keluar(JametValue **args, size_t count) {
+    int code = 0;
+    if (count >= 1 && args[0]->type == JAMET_INTEGER) {
+        code = (int)args[0]->as.integer;
+    }
+    exit(code);
+    return jamet_value_new(JAMET_NONE); /* unreachable */
+}
+
+/* direktori_saiki() - Get current working directory */
+static JametValue *fn_direktori_saiki(JametValue **args, size_t count) {
+    (void)args; (void)count;
+    char buf[4096];
+    if (getcwd(buf, sizeof(buf))) {
+        return jamet_string_new(buf);
+    }
+    return jamet_value_new(JAMET_NONE);
+}
+
 /* ==================== Dispatch Table ==================== */
 
 typedef JametValue *(*StdlibFunc)(JametValue **args, size_t count);
@@ -1580,6 +1867,28 @@ static const StdlibEntry stdlib_functions[] = {
     {"json_format",      fn_json_format},
     {"csv_parsing",      fn_csv_parsing},
     {"csv_format",       fn_csv_format},
+
+    /* Logging */
+    {"catat",            fn_catat},
+    {"catat_peringatan", fn_catat_peringatan},
+    {"catat_galat",      fn_catat_galat},
+    {"catat_debug",      fn_catat_debug},
+    {"catat_ke_file",    fn_catat_ke_file},
+    {"catat_level",      fn_catat_level},
+
+    /* Regex */
+    {"regex_cocok",        fn_regex_cocok},
+    {"regex_golek",        fn_regex_golek},
+    {"regex_golek_kabeh",  fn_regex_golek_kabeh},
+    {"regex_ganti",        fn_regex_ganti},
+    {"regex_pisah",        fn_regex_pisah},
+
+    /* OS / Exec / Env */
+    {"env_njupuk",       fn_env_njupuk},
+    {"env_setel",        fn_env_setel},
+    {"jalan_perintah",   fn_jalan_perintah},
+    {"keluar",           fn_keluar},
+    {"direktori_saiki",  fn_direktori_saiki},
 
     {NULL, NULL}
 };

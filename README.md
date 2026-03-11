@@ -283,6 +283,9 @@ JametLang/
 - **Networking** — `soket_tcp`, `soket_kirim`, `soket_tampa`, `soket_server`, `soket_terima`
 - **Kriptografi** — `hash_md5`, `hash_sha256`, `hash_sha512`, `hmac_sha256`, `base64_encode/decode`
 - **Serialisasi** — `json_parsing`, `json_format`, `csv_parsing`, `csv_format`
+- **Logging** — `catat`, `catat_peringatan`, `catat_galat`, `catat_debug`, `catat_ke_file`, `catat_level`
+- **Regex** — `regex_cocok`, `regex_golek`, `regex_golek_kabeh`, `regex_ganti`, `regex_pisah`
+- **OS/Exec/Env** — `env_njupuk`, `env_setel`, `jalan_perintah`, `keluar`, `direktori_saiki`
 
 ## Standard Library
 
@@ -409,6 +412,37 @@ JametLang/
 | `json_format(value)` | Format value dadi JSON | `json_format(map)` → string |
 | `csv_parsing(str, delim?)` | Parse CSV dadi array | `csv_parsing("a,b\n1,2")` |
 | `csv_format(arr, delim?)` | Format array dadi CSV | `csv_format(data)` |
+
+### Logging
+
+| Fungsi | Keterangan | Conto |
+| ------ | ---------- | ----- |
+| `catat(pesan)` | Log info karo timestamp | `catat("Server dimulai")` |
+| `catat_peringatan(pesan)` | Log peringatan | `catat_peringatan("Memori penuh")` |
+| `catat_galat(pesan)` | Log galat | `catat_galat("Koneksi gagal")` |
+| `catat_debug(pesan)` | Log debug | `catat_debug("Variable x = 5")` |
+| `catat_ke_file(path, pesan)` | Log ke file | `catat_ke_file("app.log", "OK")` |
+| `catat_level(n)` | Set level (0-4) | `catat_level(4)` — mode debug |
+
+### Regular Expression (Regex)
+
+| Fungsi | Keterangan | Conto |
+| ------ | ---------- | ----- |
+| `regex_cocok(pola, teks)` | Test cocok (boolean) | `regex_cocok("^[0-9]+$", "123")` → `bener` |
+| `regex_golek(pola, teks)` | Golek match pertama | `regex_golek("[0-9]+", "abc123")` → `"123"` |
+| `regex_golek_kabeh(pola, teks)` | Golek kabeh match | `regex_golek_kabeh("[0-9]+", "a1b2")` → `["1","2"]` |
+| `regex_ganti(pola, teks, repl)` | Ganti karo regex | `regex_ganti("[0-9]+", "a1b2", "X")` → `"aXbX"` |
+| `regex_pisah(pola, teks)` | Pisah karo regex | `regex_pisah("[,; ]+", "a, b; c")` → `["a","b","c"]` |
+
+### OS / Exec / Environment
+
+| Fungsi | Keterangan | Conto |
+| ------ | ---------- | ----- |
+| `env_njupuk(nama)` | Njupuk environment variable | `env_njupuk("HOME")` |
+| `env_setel(nama, nilai)` | Setel environment variable | `env_setel("KEY", "val")` |
+| `jalan_perintah(cmd)` | Jalanke perintah shell | `jalan_perintah("ls -la")` |
+| `keluar(kode?)` | Metu saka program | `keluar(0)` |
+| `direktori_saiki()` | Direktori kerja saiki | `direktori_saiki()` |
 
 ### Utilitas
 
@@ -718,6 +752,9 @@ uncal 3.14;             // float
 - [x] Networking (Socket) — `soket_tcp`, `soket_kirim`, `soket_tampa`, `soket_tutup`, `soket_server`, `soket_terima`
 - [x] Kriptografi & Hashing — `hash_md5`, `hash_sha1`, `hash_sha256`, `hash_sha512`, `hmac_sha256`, `base64_encode/decode`
 - [x] Serialisasi — `json_parsing`, `json_format`, `csv_parsing`, `csv_format`
+- [x] Logging — `catat`, `catat_peringatan`, `catat_galat`, `catat_debug`, `catat_ke_file`, `catat_level`
+- [x] Regex — `regex_cocok`, `regex_golek`, `regex_golek_kabeh`, `regex_ganti`, `regex_pisah`
+- [x] OS/Exec/Env — `env_njupuk`, `env_setel`, `jalan_perintah`, `keluar`, `direktori_saiki`
 
 ## VSCode Extension
 

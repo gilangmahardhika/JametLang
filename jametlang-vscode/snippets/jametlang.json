@@ -413,5 +413,80 @@
     "prefix": "soket_tutup",
     "body": ["soket_tutup(${1:fd});"],
     "description": "Close socket"
+  },
+  "Log Info": {
+    "prefix": "catat",
+    "body": ["catat(${1:\"pesan\"});"],
+    "description": "Log info message with timestamp"
+  },
+  "Log Warning": {
+    "prefix": "catat_peringatan",
+    "body": ["catat_peringatan(${1:\"pesan\"});"],
+    "description": "Log warning message"
+  },
+  "Log Error": {
+    "prefix": "catat_galat",
+    "body": ["catat_galat(${1:\"pesan\"});"],
+    "description": "Log error message"
+  },
+  "Log Debug": {
+    "prefix": "catat_debug",
+    "body": ["catat_debug(${1:\"pesan\"});"],
+    "description": "Log debug message"
+  },
+  "Log to File": {
+    "prefix": "catat_ke_file",
+    "body": ["catat_ke_file(${1:\"app.log\"}, ${2:\"pesan\"});"],
+    "description": "Log message to file"
+  },
+  "Regex Match": {
+    "prefix": "regex_cocok",
+    "body": ["regex_cocok(${1:\"pola\"}, ${2:\"teks\"})"],
+    "description": "Test regex match (boolean)"
+  },
+  "Regex Find": {
+    "prefix": "regex_golek",
+    "body": ["regex_golek(${1:\"pola\"}, ${2:\"teks\"})"],
+    "description": "Find first regex match"
+  },
+  "Regex Find All": {
+    "prefix": "regex_golek_kabeh",
+    "body": ["regex_golek_kabeh(${1:\"pola\"}, ${2:\"teks\"})"],
+    "description": "Find all regex matches"
+  },
+  "Regex Replace": {
+    "prefix": "regex_ganti",
+    "body": ["regex_ganti(${1:\"pola\"}, ${2:\"teks\"}, ${3:\"pengganti\"})"],
+    "description": "Replace all regex matches"
+  },
+  "Regex Split": {
+    "prefix": "regex_pisah",
+    "body": ["regex_pisah(${1:\"pola\"}, ${2:\"teks\"})"],
+    "description": "Split text by regex pattern"
+  },
+  "Get Env": {
+    "prefix": "env_njupuk",
+    "body": ["variabel ${1:val} = env_njupuk(${2:\"HOME\"});"],
+    "description": "Get environment variable"
+  },
+  "Set Env": {
+    "prefix": "env_setel",
+    "body": ["env_setel(${1:\"KEY\"}, ${2:\"value\"});"],
+    "description": "Set environment variable"
+  },
+  "Run Command": {
+    "prefix": "jalan_perintah",
+    "body": ["variabel ${1:output} = jalan_perintah(${2:\"ls -la\"});"],
+    "description": "Execute shell command and get output"
+  },
+  "Exit": {
+    "prefix": "keluar",
+    "body": ["keluar(${1:0});"],
+    "description": "Exit program with code"
+  },
+  "Current Directory": {
+    "prefix": "direktori_saiki",
+    "body": ["variabel ${1:cwd} = direktori_saiki();"],
+    "description": "Get current working directory"
   }
 }
