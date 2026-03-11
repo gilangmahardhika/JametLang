@@ -110,6 +110,34 @@ void repl_print_tokens(Token *tokens, size_t count) {
     printf("--------------------\n");
 }
 
+/* Count brace balance in a string, skipping string literals and comments */
+static int count_brace_balance(const char *text) {
+    int balance = 0;
+    int in_string = 0;
+    for (size_t i = 0; text[i] != '\0'; i++) {
+        if (in_string) {
+            if (text[i] == '\\' && text[i + 1] != '\0') {
+                i++; /* skip escaped char */
+            } else if (text[i] == '"') {
+                in_string = 0;
+            }
+            continue;
+        }
+        /* Skip single-line comments */
+        if (text[i] == '/' && text[i + 1] == '/') {
+            break;
+        }
+        if (text[i] == '"') {
+            in_string = 1;
+        } else if (text[i] == '{') {
+            balance++;
+        } else if (text[i] == '}') {
+            balance--;
+        }
+    }
+    return balance;
+}
+
 /* Execute single line of code */
 void repl_execute_line(const char *line) {
     /* Check for commands */
@@ -171,17 +199,40 @@ void repl_execute_line(const char *line) {
         size_t stmt_count;
         Stmt **statements = parser_parse_program(parser, &stmt_count);
 
+        /* Check if any statement is a func decl (or export of func decl) */
+        int has_func_decl = 0;
+        for (size_t i = 0; i < stmt_count; i++) {
+            if (statements[i]->type == STMT_FUNC_DECL ||
+                statements[i]->type == STMT_EXPORT) {
+                has_func_decl = 1;
+                break;
+            }
+        }
+
         /* Execute statements */
         for (size_t i = 0; i < stmt_count; i++) {
             exec_stmt(statements[i]);
         }
 
-        /* Free statements */
-        for (size_t i = 0; i < stmt_count; i++) {
-            stmt_free(statements[i]);
+        /* Free statements — but if func decls are present, keep everything
+           alive because the function table references the AST nodes and
+           their token lexemes. This is a small, acceptable leak for REPL. */
+        if (!has_func_decl) {
+            for (size_t i = 0; i < stmt_count; i++) {
+                stmt_free(statements[i]);
+            }
+            free(statements);
+            parser_free(parser);
+            lexer_free_tokens(tokens, count);
+            lexer_free(lexer);
+        } else {
+            /* Only free the parser struct, not the AST or tokens */
+            free(statements);
+            parser_free(parser);
+            lexer_free(lexer);
+            /* tokens and stmt ASTs are intentionally kept alive */
         }
-        free(statements);
-        parser_free(parser);
+        return;
     }
 
     lexer_free_tokens(tokens, count);
@@ -198,20 +249,60 @@ void repl_run(void) {
     /* Load history */
     read_history(".jamet_history");
 
-    while ((line = readline("jamet> ")) != NULL) {
-        /* Execute the line */
-        repl_execute_line(line);
+    /* Multi-line buffer */
+    size_t buf_cap = 4096;
+    char *buf = (char *)malloc(buf_cap);
+    buf[0] = '\0';
+    size_t buf_len = 0;
+    int brace_depth = 0;
 
-        /* Add to history */
-        if (strlen(line) > 0) {
-            add_history(line);
-            write_history(".jamet_history");
+    while ((line = readline(brace_depth > 0 ? "...   " : "jamet> ")) != NULL) {
+        size_t line_len = strlen(line);
+
+        /* If not in a block and line is empty, skip */
+        if (brace_depth == 0 && line_len == 0) {
+            free(line);
+            continue;
         }
 
-        /* Free the line */
+        /* Grow buffer if needed: current + newline + new line + null */
+        while (buf_len + line_len + 2 >= buf_cap) {
+            buf_cap *= 2;
+            buf = (char *)realloc(buf, buf_cap);
+        }
+
+        /* Append newline separator if already have content */
+        if (buf_len > 0) {
+            buf[buf_len++] = '\n';
+        }
+        memcpy(buf + buf_len, line, line_len);
+        buf_len += line_len;
+        buf[buf_len] = '\0';
+
+        /* Update brace balance */
+        brace_depth += count_brace_balance(line);
+        if (brace_depth < 0) brace_depth = 0;
+
         free(line);
+
+        /* If braces are balanced, execute the accumulated buffer */
+        if (brace_depth == 0) {
+            /* Execute the complete input */
+            repl_execute_line(buf);
+
+            /* Add to history */
+            if (buf_len > 0) {
+                add_history(buf);
+                write_history(".jamet_history");
+            }
+
+            /* Reset buffer */
+            buf[0] = '\0';
+            buf_len = 0;
+        }
     }
 
+    free(buf);
     printf("\nMatur nuwun! Nyangoni Slamet!\n");
 #else
     /* Use fallback implementation */
@@ -225,27 +316,67 @@ void repl_run_fallback(void) {
 
     char *line = NULL;
     size_t len = 0;
-    ssize_t read;
+    ssize_t nread;
+
+    /* Multi-line buffer */
+    size_t buf_cap = 4096;
+    char *buf = (char *)malloc(buf_cap);
+    buf[0] = '\0';
+    size_t buf_len = 0;
+    int brace_depth = 0;
 
     while (1) {
-        repl_print_prompt();
+        if (brace_depth > 0) {
+            printf("...   ");
+        } else {
+            repl_print_prompt();
+        }
+        fflush(stdout);
 
-        read = getline(&line, &len, stdin);
+        nread = getline(&line, &len, stdin);
 
-        if (read == -1) {
-            /* EOF or error */
+        if (nread == -1) {
             printf("\nMatur nuwun! Nyangoni Slamet!\n");
             break;
         }
 
         /* Remove trailing newline */
-        if (read > 0 && line[read - 1] == '\n') {
-            line[read - 1] = '\0';
+        if (nread > 0 && line[nread - 1] == '\n') {
+            line[nread - 1] = '\0';
+            nread--;
         }
 
-        repl_execute_line(line);
+        size_t line_len = (size_t)nread;
+
+        /* If not in a block and line is empty, skip */
+        if (brace_depth == 0 && line_len == 0) {
+            continue;
+        }
+
+        /* Grow buffer if needed */
+        while (buf_len + line_len + 2 >= buf_cap) {
+            buf_cap *= 2;
+            buf = (char *)realloc(buf, buf_cap);
+        }
+
+        if (buf_len > 0) {
+            buf[buf_len++] = '\n';
+        }
+        memcpy(buf + buf_len, line, line_len);
+        buf_len += line_len;
+        buf[buf_len] = '\0';
+
+        brace_depth += count_brace_balance(line);
+        if (brace_depth < 0) brace_depth = 0;
+
+        if (brace_depth == 0) {
+            repl_execute_line(buf);
+            buf[0] = '\0';
+            buf_len = 0;
+        }
     }
 
+    free(buf);
     if (line) {
         free(line);
     }
