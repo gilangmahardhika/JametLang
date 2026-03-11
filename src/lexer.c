@@ -186,8 +186,7 @@ TokenType lexer_identifier_type(Lexer *lexer) {
 
 /* Mriksa string */
 Token lexer_string(Lexer *lexer) {
-    /* Mlompati tanda petik buka */
-    lexer_advance(lexer);
+    /* Tanda petik buka wis di-advance dening lexer_scan_token */
 
     while (!lexer_is_at_end(lexer) && lexer_peek(lexer) != '"') {
         if (lexer_peek(lexer) == '\n') {

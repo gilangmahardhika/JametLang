@@ -83,5 +83,100 @@
       "/* ${1:komentar} */"
     ],
     "description": "Komentar blok (block comment)"
+  },
+  "String Length": {
+    "prefix": "panjang",
+    "body": ["panjang(${1:str})"],
+    "description": "Panjang string/array"
+  },
+  "Substring": {
+    "prefix": "potong",
+    "body": ["potong(${1:str}, ${2:mulai}, ${3:akhir})"],
+    "description": "Potong substring"
+  },
+  "Uppercase": {
+    "prefix": "huruf_gedhe",
+    "body": ["huruf_gedhe(${1:str})"],
+    "description": "Huruf gedhe (uppercase)"
+  },
+  "Lowercase": {
+    "prefix": "huruf_cilik",
+    "body": ["huruf_cilik(${1:str})"],
+    "description": "Huruf cilik (lowercase)"
+  },
+  "Replace": {
+    "prefix": "ganti",
+    "body": ["ganti(${1:str}, ${2:lama}, ${3:anyar})"],
+    "description": "Ganti substring (replace)"
+  },
+  "Contains": {
+    "prefix": "ngandhut",
+    "body": ["ngandhut(${1:str}, ${2:sub})"],
+    "description": "Cek ngandhut substring (contains)"
+  },
+  "Split": {
+    "prefix": "pisah",
+    "body": ["pisah(${1:str}, ${2:delimiter})"],
+    "description": "Pisah string dadi array (split)"
+  },
+  "Absolute": {
+    "prefix": "mutlak",
+    "body": ["mutlak(${1:n})"],
+    "description": "Nilai mutlak (absolute value)"
+  },
+  "Power": {
+    "prefix": "pangkat",
+    "body": ["pangkat(${1:base}, ${2:exp})"],
+    "description": "Pangkat (power)"
+  },
+  "Square Root": {
+    "prefix": "akar",
+    "body": ["akar(${1:n})"],
+    "description": "Akar kuadrat (square root)"
+  },
+  "Random": {
+    "prefix": "acak",
+    "body": ["acak(${1:min}, ${2:max})"],
+    "description": "Angka acak (random)"
+  },
+  "Round": {
+    "prefix": "bulatke",
+    "body": ["bulatke(${1:n})"],
+    "description": "Bulatke (round)"
+  },
+  "Floor": {
+    "prefix": "lantai",
+    "body": ["lantai(${1:n})"],
+    "description": "Lantai (floor)"
+  },
+  "Ceil": {
+    "prefix": "langit",
+    "body": ["langit(${1:n})"],
+    "description": "Langit-langit (ceil)"
+  },
+  "To Integer": {
+    "prefix": "dadi_angka",
+    "body": ["dadi_angka(${1:val})"],
+    "description": "Konversi dadi integer"
+  },
+  "To Float": {
+    "prefix": "dadi_desimal",
+    "body": ["dadi_desimal(${1:val})"],
+    "description": "Konversi dadi float"
+  },
+  "To String": {
+    "prefix": "dadi_teks",
+    "body": ["dadi_teks(${1:val})"],
+    "description": "Konversi dadi string"
+  },
+  "Type Name": {
+    "prefix": "jinis",
+    "body": ["jinis(${1:val})"],
+    "description": "Entuk jeneng jinis (type name)"
+  },
+  "Current Time": {
+    "prefix": "wektu",
+    "body": ["wektu()"],
+    "description": "Wektu saiki (current time in seconds)"
   }
 }

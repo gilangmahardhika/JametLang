@@ -4,6 +4,7 @@
  */
 
 #include "parser.h"
+#include "stdlib_jamet.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -977,13 +978,35 @@ JametValue *eval_expr(Expr *expr) {
                     return jamet_string_new("");
                 }
 
+                /* Standard library functions */
+                {
+                    size_t ac = expr->as.call.count;
+                    JametValue **evaluated_args = NULL;
+                    if (ac > 0) {
+                        evaluated_args = (JametValue **)malloc(sizeof(JametValue *) * ac);
+                        for (size_t i = 0; i < ac; i++) {
+                            evaluated_args[i] = eval_expr(expr->as.call.arguments[i]);
+                        }
+                    }
+                    JametValue *stdlib_result = stdlib_call(name, evaluated_args, ac);
+                    if (stdlib_result) {
+                        for (size_t i = 0; i < ac; i++) jamet_value_free(evaluated_args[i]);
+                        free(evaluated_args);
+                        return stdlib_result;
+                    }
+                    for (size_t i = 0; i < ac; i++) jamet_value_free(evaluated_args[i]);
+                    free(evaluated_args);
+                }
+
                 /* User-defined functions */
                 Function *func = find_func(name);
                 if (func) {
                     return exec_function_call(func, expr->as.call.arguments, expr->as.call.count);
                 }
             }
-            fprintf(stderr, "Kesalahan: Fungsi ora dikenal\n");
+            fprintf(stderr, "Kesalahan: Fungsi '%s' ora dikenal\n",
+                    expr->as.call.callee->type == EXPR_VARIABLE ?
+                    expr->as.call.callee->as.variable.name.lexeme : "?");
             return jamet_value_new(JAMET_NONE);
         }
 
@@ -1008,9 +1031,11 @@ JametValue *eval_expr(Expr *expr) {
                 else if (op == TOKEN_LEBIH_CIYUT) result = jamet_boolean_new(l < r);
                 else if (op == TOKEN_LAN) result = jamet_boolean_new(l && r);
                 else if (op == TOKEN_UTAWA) result = jamet_boolean_new(l || r);
-            } else if (left->type == JAMET_FLOAT || right->type == JAMET_FLOAT) {
-                double l = left->type == JAMET_FLOAT ? left->as.float_val : left->as.integer;
-                double r = right->type == JAMET_FLOAT ? right->as.float_val : right->as.integer;
+            } else if ((left->type == JAMET_FLOAT || right->type == JAMET_FLOAT) &&
+                       (left->type == JAMET_FLOAT || left->type == JAMET_INTEGER) &&
+                       (right->type == JAMET_FLOAT || right->type == JAMET_INTEGER)) {
+                double l = left->type == JAMET_FLOAT ? left->as.float_val : (double)left->as.integer;
+                double r = right->type == JAMET_FLOAT ? right->as.float_val : (double)right->as.integer;
                 if (op == TOKEN_PLUS) result = jamet_float_new(l + r);
                 else if (op == TOKEN_MINUS) result = jamet_float_new(l - r);
                 else if (op == TOKEN_KALI) result = jamet_float_new(l * r);

@@ -23,6 +23,7 @@ TARGET_DEMO = $(BIN_DIR)/jametlang
 SOURCES_CLI = $(SRC_DIR)/jamet_types.c \
               $(SRC_DIR)/lexer.c \
               $(SRC_DIR)/parser.c \
+              $(SRC_DIR)/stdlib_jamet.c \
               $(SRC_DIR)/repl.c \
               $(SRC_DIR)/cli.c
 
@@ -35,6 +36,7 @@ SOURCES_DEMO = $(SRC_DIR)/jamet_types.c \
 OBJECTS_CLI = $(BUILD_DIR)/jamet_types_cli.o \
               $(BUILD_DIR)/lexer_cli.o \
               $(BUILD_DIR)/parser.o \
+              $(BUILD_DIR)/stdlib_jamet.o \
               $(BUILD_DIR)/repl.o \
               $(BUILD_DIR)/cli.o
 
@@ -57,10 +59,13 @@ directories:
 	@mkdir -p $(BUILD_DIR)
 	@mkdir -p $(BIN_DIR)
 
+# LDFLAGS for readline and math
+LDFLAGS_CLI = -lreadline -lm
+
 # Link CLI object files
 $(TARGET_CLI): $(OBJECTS_CLI)
 	@echo "Nggabungke (Linking) Jamet CLI..."
-	$(CC) $(OBJECTS_CLI) $(LDFLAGS) -o $(TARGET_CLI)
+	$(CC) $(OBJECTS_CLI) $(LDFLAGS_CLI) -o $(TARGET_CLI)
 	@echo "Jamet CLI wis siap! Run dening: ./$(TARGET_CLI)"
 
 # Link Demo object files
@@ -80,6 +85,10 @@ $(BUILD_DIR)/lexer_cli.o: $(SRC_DIR)/lexer.c
 
 $(BUILD_DIR)/parser.o: $(SRC_DIR)/parser.c
 	@echo "Nggawe (Compiling) parser.c..."
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/stdlib_jamet.o: $(SRC_DIR)/stdlib_jamet.c
+	@echo "Nggawe (Compiling) stdlib_jamet.c..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/repl.o: $(SRC_DIR)/repl.c

@@ -212,17 +212,20 @@ JametLang/
 │   ├── jamet_types.h    # Jinis data dhasar
 │   ├── lexer.h          # Lexer/Tokenizer
 │   ├── parser.h         # Parser/Interpreter (AST)
+│   ├── stdlib_jamet.h   # Standard Library header
 │   └── repl.h           # REPL header
 ├── src/
 │   ├── jamet_types.c    # Implementasi jinis data
 │   ├── lexer.c          # Implementasi lexer
 │   ├── parser.c         # Implementasi parser & interpreter
+│   ├── stdlib_jamet.c   # Implementasi standard library
 │   ├── repl.c           # Implementasi REPL
 │   ├── cli.c            # CLI entry point
 │   └── main.c           # Demo program
 ├── examples/
 │   ├── halo.jmt         # Conto program dasar
 │   ├── test_parser.jmt  # Test parser & interpreter
+│   ├── test_stdlib.jmt  # Test standard library
 │   └── test_simple.jmt  # Test sederhana
 ├── jametlang-vscode/    # VSCode Extension
 │   ├── syntaxes/        # TextMate grammar
@@ -247,6 +250,49 @@ JametLang/
 - **String Concatenation** — `"Halo " + 42` → `"Halo 42"`
 - **Boolean** — `bener` / `salah`
 - **Input/Output** — `nyerat()` / `moco()`
+- **Standard Library** — Fungsi bawaan kanggo string, matematika, konversi, lan utilitas
+
+## Standard Library
+
+### Fungsi String
+
+| Fungsi | Keterangan | Conto |
+| ------ | ---------- | ----- |
+| `panjang(str)` | Panjang string/array | `panjang("Halo")` → `4` |
+| `potong(str, mulai, akhir)` | Potong substring | `potong("Halo Dunia", 0, 4)` → `"Halo"` |
+| `huruf_gedhe(str)` | Huruf gedhe (uppercase) | `huruf_gedhe("halo")` → `"HALO"` |
+| `huruf_cilik(str)` | Huruf cilik (lowercase) | `huruf_cilik("HALO")` → `"halo"` |
+| `ganti(str, lama, anyar)` | Ganti substring | `ganti("Halo", "Halo", "Hi")` → `"Hi"` |
+| `ngandhut(str, sub)` | Cek ngandhut substring | `ngandhut("Halo", "al")` → `bener` |
+| `pisah(str, delimiter)` | Pisah string dadi array | `pisah("a,b,c", ",")` → `["a","b","c"]` |
+
+### Fungsi Matematika
+
+| Fungsi | Keterangan | Conto |
+| ------ | ---------- | ----- |
+| `mutlak(n)` | Nilai mutlak (absolut) | `mutlak(-42)` → `42` |
+| `pangkat(a, b)` | Pangkat (power) | `pangkat(2, 10)` → `1024` |
+| `akar(n)` | Akar kuadrat (sqrt) | `akar(144)` → `12` |
+| `acak(min, max)` | Angka acak (random) | `acak(1, 100)` → `42` |
+| `bulatke(n)` | Bulatke (round) | `bulatke(3.7)` → `4` |
+| `lantai(n)` | Lantai (floor) | `lantai(3.9)` → `3` |
+| `langit(n)` | Langit-langit (ceil) | `langit(3.1)` → `4` |
+| `sisa(a, b)` | Sisa bagi (fmod) | `sisa(10.5, 3)` → `1.5` |
+
+### Konversi Jinis (Type Conversion)
+
+| Fungsi | Keterangan | Conto |
+| ------ | ---------- | ----- |
+| `dadi_angka(val)` | Konversi dadi integer | `dadi_angka("123")` → `123` |
+| `dadi_desimal(val)` | Konversi dadi float | `dadi_desimal(42)` → `42.0` |
+| `dadi_teks(val)` | Konversi dadi string | `dadi_teks(42)` → `"42"` |
+| `jinis(val)` | Entuk jeneng jinis | `jinis(42)` → `"integer"` |
+
+### Utilitas
+
+| Fungsi | Keterangan | Conto |
+| ------ | ---------- | ----- |
+| `wektu()` | Wektu saiki (detik epoch) | `wektu()` → `1773228105` |
 
 ## Status Saiki
 
@@ -257,7 +303,7 @@ JametLang/
 - [x] Interpreter
 - [x] CLI / REPL
 - [x] Installer
-- [ ] Standard Library
+- [x] Standard Library (string, math, konversi, utilitas)
 - [ ] Array Operations
 - [ ] Class / OOP (`kelas`, `anyar`, `piwulang`)
 

@@ -1,0 +1,116 @@
+// Test Standard Library Functions
+
+// ==================== String Functions ====================
+nyerat("=== String Functions ===");
+
+// panjang - string length
+variabel teks = "Halo Dunia";
+nyerat("panjang(Halo Dunia) = " + panjang(teks));
+
+// huruf_gedhe - uppercase
+nyerat("huruf_gedhe(halo) = " + huruf_gedhe("halo"));
+
+// huruf_cilik - lowercase
+nyerat("huruf_cilik(HALO) = " + huruf_cilik("HALO"));
+
+// potong - substring
+nyerat("potong(Halo Dunia, 0, 4) = " + potong("Halo Dunia", 0, 4));
+nyerat("potong(Halo Dunia, 5, 10) = " + potong("Halo Dunia", 5, 10));
+
+// ganti - replace
+nyerat("ganti(Halo Dunia, Dunia, Jawa) = " + ganti("Halo Dunia", "Dunia", "Jawa"));
+
+// ngandhut - contains
+nyerat("ngandhut(Halo Dunia, Dunia) = " + ngandhut("Halo Dunia", "Dunia"));
+nyerat("ngandhut(Halo Dunia, Java) = " + ngandhut("Halo Dunia", "Java"));
+
+// ==================== Math Functions ====================
+nyerat("");
+nyerat("=== Math Functions ===");
+
+// mutlak - absolute value
+nyerat("mutlak(-42) = " + mutlak(-42));
+nyerat("mutlak(42) = " + mutlak(42));
+
+// pangkat - power
+nyerat("pangkat(2, 10) = " + pangkat(2, 10));
+nyerat("pangkat(3, 3) = " + pangkat(3, 3));
+
+// akar - square root
+nyerat("akar(144) = " + akar(144));
+nyerat("akar(2) = " + akar(2));
+
+// bulatke - round
+nyerat("bulatke(3.7) = " + bulatke(3.7));
+nyerat("bulatke(3.2) = " + bulatke(3.2));
+
+// lantai - floor
+nyerat("lantai(3.9) = " + lantai(3.9));
+
+// langit - ceil
+nyerat("langit(3.1) = " + langit(3.1));
+
+// acak - random (just test it runs)
+variabel r = acak(1, 100);
+nyerat("acak(1, 100) = " + r);
+
+// sisa - modulo for floats
+nyerat("sisa(10.5, 3) = " + sisa(10.5, 3));
+
+// ==================== Type Conversion ====================
+nyerat("");
+nyerat("=== Type Conversion ===");
+
+// dadi_angka - to integer
+nyerat("dadi_angka(str 123) = " + dadi_angka("123"));
+nyerat("dadi_angka(3.14) = " + dadi_angka(3.14));
+nyerat("dadi_angka(bener) = " + dadi_angka(bener));
+
+// dadi_desimal - to float
+nyerat("dadi_desimal(42) = " + dadi_desimal(42));
+nyerat("dadi_desimal(str 3.14) = " + dadi_desimal("3.14"));
+
+// dadi_teks - to string
+nyerat("dadi_teks(42) = " + dadi_teks(42));
+nyerat("dadi_teks(bener) = " + dadi_teks(bener));
+
+// jinis - type name
+nyerat("jinis(42) = " + jinis(42));
+nyerat("jinis(3.14) = " + jinis(3.14));
+nyerat("jinis(teks) = " + jinis("teks"));
+nyerat("jinis(bener) = " + jinis(bener));
+nyerat("jinis(kosong) = " + jinis(kosong));
+
+// ==================== Utility ====================
+nyerat("");
+nyerat("=== Utility ===");
+
+// wektu - current time
+nyerat("wektu() = " + wektu());
+
+// ==================== Combined Usage ====================
+nyerat("");
+nyerat("=== Combined Usage ===");
+
+// String manipulation
+variabel kalimat = "jametlang iku apik banget";
+variabel kata = pisah(kalimat, " ");
+nyerat("pisah jumlah kata = " + panjang(kata));
+
+// Math + string
+variabel sisi = 5;
+variabel luas = pangkat(sisi, 2);
+nyerat("Luas persegi sisi " + sisi + " = " + luas);
+
+// Type checking
+fungsi cek_jinis(nilai) {
+    nyerat("Nilai: " + nilai + " -> Jinis: " + jinis(nilai));
+}
+
+cek_jinis(42);
+cek_jinis("teks");
+cek_jinis(3.14);
+cek_jinis(bener);
+
+nyerat("");
+nyerat("=== Kabeh test rampung! ===");
