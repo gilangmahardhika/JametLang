@@ -1,0 +1,136 @@
+// Test All New Features
+
+// ==================== >= and <= Operators ====================
+nyerat("=== >= dan <= Operators ===");
+nyerat(5 >= 5);    // bener
+nyerat(5 >= 3);    // bener
+nyerat(3 >= 5);    // salah
+nyerat(5 <= 5);    // bener
+nyerat(3 <= 5);    // bener
+nyerat(5 <= 3);    // salah
+nyerat(3.14 >= 3.0);  // bener
+nyerat(2.0 <= 3.0);   // bener
+
+// ==================== ++ and -- Operators ====================
+nyerat("");
+nyerat("=== ++ dan -- Operators ===");
+variabel x = 10;
+x++;
+nyerat("x++ = " + x);    // 11
+x--;
+nyerat("x-- = " + x);    // 10
+
+// Use in loop
+variabel counter = 0;
+kanggo (variabel i = 0; i < 5; i++) {
+    counter++;
+}
+nyerat("Counter: " + counter);   // 5
+
+// ==================== forEach (saben) ====================
+nyerat("");
+nyerat("=== forEach (saben) ===");
+variabel arr = [10, 20, 30, 40, 50];
+variabel total = 0;
+saben (variabel item : arr) {
+    nyerat("Item: " + item);
+    total = total + item;
+}
+nyerat("Total: " + total);   // 150
+
+// saben with break
+saben (variabel n : [1, 2, 3, 4, 5]) {
+    nek (n == 3) {
+        pegat;
+    }
+    nyerat("N: " + n);
+}
+
+// ==================== Lambda Functions ====================
+nyerat("");
+nyerat("=== Lambda Functions ===");
+
+variabel kali_dua = fungsi(x) {
+    balekno x * 2;
+};
+nyerat("kali_dua(5) = " + kali_dua(5));    // 10
+
+variabel jumlahke = fungsi(a, b) {
+    balekno a + b;
+};
+nyerat("jumlahke(3, 4) = " + jumlahke(3, 4));  // 7
+
+// Lambda used directly
+variabel angka = [1, 2, 3, 4, 5];
+variabel hasil_map = [];
+saben (variabel item : angka) {
+    variabel val = kali_dua(item);
+    hasil_map = tambah(hasil_map, val);
+}
+nyerat("Map x2: " + hasil_map);
+
+// ==================== HashMap/Dictionary ====================
+nyerat("");
+nyerat("=== HashMap/Dictionary ===");
+
+variabel orang = {
+    "nama": "Budi",
+    "umur": 25,
+    "kota": "Surabaya"
+};
+nyerat("Map: " + orang);
+nyerat("Nama: " + orang["nama"]);
+nyerat("Umur: " + orang["umur"]);
+nyerat("Kota: " + orang["kota"]);
+
+// Map assignment
+orang["umur"] = 26;
+nyerat("Umur anyar: " + orang["umur"]);
+
+// Map with identifier keys
+variabel config = {
+    host: "localhost",
+    port: 8080,
+    debug: bener
+};
+nyerat("Config: " + config);
+nyerat("Host: " + config["host"]);
+nyerat("Port: " + config["port"]);
+
+// Map helpers
+nyerat("Kunci: " + kunci_map(orang));
+nyerat("Nilai: " + nilai_map(orang));
+nyerat("Ana nama? " + ana_kunci(orang, "nama"));
+nyerat("Ana email? " + ana_kunci(orang, "email"));
+nyerat("Panjang map: " + panjang(orang));
+
+// saben with map (iterates keys)
+nyerat("Iterasi map:");
+saben (variabel kunci : orang) {
+    nyerat("  " + kunci + " = " + orang[kunci]);
+}
+
+// ==================== File I/O ====================
+nyerat("");
+nyerat("=== File I/O ===");
+
+variabel test_file = "/tmp/jamet_test.txt";
+tulis_file(test_file, "Halo saka JametLang!\nBaris kedua.");
+nyerat("File ditulis: " + ana_file(test_file));
+
+variabel isi = baca_file(test_file);
+nyerat("Isi file: " + isi);
+
+tambah_file(test_file, "\nBaris ketiga.");
+variabel isi2 = baca_file(test_file);
+nyerat("Isi sawise tambah: " + isi2);
+
+// ==================== Type check for new types ====================
+nyerat("");
+nyerat("=== Jinis (Type) ===");
+nyerat("Jinis map: " + jinis(orang));
+nyerat("Jinis lambda: " + jinis(kali_dua));
+nyerat("Jinis array: " + jinis(arr));
+
+nyerat("");
+nyerat("=== Kabeh test rampung! ===");

@@ -20,7 +20,9 @@ typedef enum {
     EXPR_CALL,
     EXPR_ARRAY,
     EXPR_INDEX,
-    EXPR_INDEX_ASSIGN
+    EXPR_INDEX_ASSIGN,
+    EXPR_LAMBDA,
+    EXPR_MAP
 } ExprType;
 
 /* Statement types */
@@ -36,7 +38,10 @@ typedef enum {
     STMT_BREAK,
     STMT_CONTINUE,
     STMT_TRY,
-    STMT_THROW
+    STMT_THROW,
+    STMT_FOREACH,
+    STMT_IMPORT,
+    STMT_EXPORT
 } StmtType;
 
 /* Forward declarations */
@@ -86,6 +91,16 @@ struct Expr {
             Expr *index;
             Expr *value;
         } index_assign;
+        struct {
+            Token **params;
+            size_t param_count;
+            Stmt *body;
+        } lambda;
+        struct {
+            Expr **keys;
+            Expr **values;
+            size_t count;
+        } map;
     } as;
 };
 
@@ -138,6 +153,17 @@ struct Stmt {
         struct {
             Expr *value;
         } throw_stmt;
+        struct {
+            Token var_name;
+            Expr *iterable;
+            Stmt *body;
+        } foreach_stmt;
+        struct {
+            Expr *path;
+        } import_stmt;
+        struct {
+            Stmt *declaration;  /* the func_decl being exported */
+        } export_stmt;
     } as;
 };
 

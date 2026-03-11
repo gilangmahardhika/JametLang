@@ -72,6 +72,16 @@ void jamet_value_free(JametValue *value) {
                 free(value->as.array.elements);
             }
             break;
+        case JAMET_MAP:
+            if (value->as.map.keys != NULL) {
+                for (size_t i = 0; i < value->as.map.count; i++) {
+                    free(value->as.map.keys[i]);
+                    jamet_value_free(value->as.map.values[i]);
+                }
+                free(value->as.map.keys);
+                free(value->as.map.values);
+            }
+            break;
         default:
             break;
     }
@@ -114,6 +124,18 @@ JametValue *jamet_value_copy(JametValue *value) {
             EXIT_IF_NULL(copy->as.array.elements, "Ora bisa nyalin array");
             for (size_t i = 0; i < value->as.array.count; i++) {
                 copy->as.array.elements[i] = jamet_value_copy(value->as.array.elements[i]);
+            }
+            break;
+        case JAMET_MAP:
+            copy->as.map.count = value->as.map.count;
+            copy->as.map.capacity = value->as.map.capacity > 0 ? value->as.map.capacity : 8;
+            copy->as.map.keys = (char **)malloc(sizeof(char *) * copy->as.map.capacity);
+            copy->as.map.values = (JametValue **)malloc(sizeof(JametValue *) * copy->as.map.capacity);
+            EXIT_IF_NULL(copy->as.map.keys, "Ora bisa nyalin map keys");
+            EXIT_IF_NULL(copy->as.map.values, "Ora bisa nyalin map values");
+            for (size_t i = 0; i < value->as.map.count; i++) {
+                copy->as.map.keys[i] = strdup(value->as.map.keys[i]);
+                copy->as.map.values[i] = jamet_value_copy(value->as.map.values[i]);
             }
             break;
         default:
@@ -254,6 +276,36 @@ char *jamet_value_to_string(JametValue *value) {
             break;
         }
 
+        case JAMET_MAP: {
+            size_t buf_size = 256;
+            buffer = (char *)malloc(buf_size);
+            buffer[0] = '{';
+            size_t pos = 1;
+            for (size_t i = 0; i < value->as.map.count; i++) {
+                char *val_str = jamet_value_to_string(value->as.map.values[i]);
+                size_t key_len = strlen(value->as.map.keys[i]);
+                size_t val_len = strlen(val_str);
+                size_t sep_len = (i > 0) ? 2 : 0;
+                while (pos + key_len + val_len + sep_len + 6 > buf_size) {
+                    buf_size *= 2;
+                    buffer = (char *)realloc(buffer, buf_size);
+                }
+                if (i > 0) { buffer[pos++] = ','; buffer[pos++] = ' '; }
+                buffer[pos++] = '"';
+                memcpy(buffer + pos, value->as.map.keys[i], key_len);
+                pos += key_len;
+                buffer[pos++] = '"';
+                buffer[pos++] = ':';
+                buffer[pos++] = ' ';
+                memcpy(buffer + pos, val_str, val_len);
+                pos += val_len;
+                free(val_str);
+            }
+            buffer[pos++] = '}';
+            buffer[pos] = '\0';
+            break;
+        }
+
         default:
             len = snprintf(NULL, 0, "(jinis ora dikenal)");
             buffer = (char *)malloc(len + 1);
@@ -262,6 +314,51 @@ char *jamet_value_to_string(JametValue *value) {
     }
 
     return buffer;
+}
+
+/* Mbuat map anyar */
+JametValue *jamet_map_new(size_t capacity) {
+    JametValue *v = jamet_value_new(JAMET_MAP);
+    v->as.map.capacity = capacity > 0 ? capacity : 8;
+    v->as.map.count = 0;
+    v->as.map.keys = (char **)malloc(sizeof(char *) * v->as.map.capacity);
+    v->as.map.values = (JametValue **)malloc(sizeof(JametValue *) * v->as.map.capacity);
+    EXIT_IF_NULL(v->as.map.keys, "Ora bisa mbenakna memori map keys");
+    EXIT_IF_NULL(v->as.map.values, "Ora bisa mbenakna memori map values");
+    return v;
+}
+
+/* Set map entry */
+void jamet_map_set(JametValue *map, const char *key, JametValue *value) {
+    if (map == NULL || map->type != JAMET_MAP) return;
+    /* Check if key exists */
+    for (size_t i = 0; i < map->as.map.count; i++) {
+        if (strcmp(map->as.map.keys[i], key) == 0) {
+            jamet_value_free(map->as.map.values[i]);
+            map->as.map.values[i] = value;
+            return;
+        }
+    }
+    /* Add new key */
+    if (map->as.map.count >= map->as.map.capacity) {
+        map->as.map.capacity *= 2;
+        map->as.map.keys = (char **)realloc(map->as.map.keys, sizeof(char *) * map->as.map.capacity);
+        map->as.map.values = (JametValue **)realloc(map->as.map.values, sizeof(JametValue *) * map->as.map.capacity);
+    }
+    map->as.map.keys[map->as.map.count] = strdup(key);
+    map->as.map.values[map->as.map.count] = value;
+    map->as.map.count++;
+}
+
+/* Get map entry */
+JametValue *jamet_map_get(JametValue *map, const char *key) {
+    if (map == NULL || map->type != JAMET_MAP) return NULL;
+    for (size_t i = 0; i < map->as.map.count; i++) {
+        if (strcmp(map->as.map.keys[i], key) == 0) {
+            return map->as.map.values[i];
+        }
+    }
+    return NULL;
 }
 
 /* Mbandingake loro JametValue */

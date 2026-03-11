@@ -1,0 +1,21 @@
+// Math Module - contoh modul kanggo di-import
+
+kirim fungsi kuadrat(x) {
+    balekno x * x;
+}
+
+kirim fungsi kubik(x) {
+    balekno x * x * x;
+}
+
+kirim fungsi faktorial(n) {
+    nek (n <= 1) {
+        balekno 1;
+    }
+    balekno n * faktorial(n - 1);
+}
+
+// Fungsi iki ORA di-export, ora bisa diakses saka luar
+fungsi internal_helper() {
+    balekno 42;
+}

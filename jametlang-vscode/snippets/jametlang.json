@@ -247,5 +247,86 @@
     "prefix": "uncal",
     "body": ["uncal ${1:\"pesan error\"};"],
     "description": "Throw exception (uncal)"
+  },
+  "ForEach": {
+    "prefix": "saben",
+    "body": [
+      "saben (variabel ${1:item} : ${2:array}) {",
+      "\t${3:// body}",
+      "}"
+    ],
+    "description": "forEach loop (saben)"
+  },
+  "Lambda": {
+    "prefix": "lambda",
+    "body": [
+      "variabel ${1:fn} = fungsi(${2:x}) {",
+      "\tbalekno ${3:x * 2};",
+      "};"
+    ],
+    "description": "Lambda/anonymous function"
+  },
+  "Map Literal": {
+    "prefix": "map",
+    "body": [
+      "variabel ${1:data} = {",
+      "\t\"${2:key}\": ${3:value}",
+      "};"
+    ],
+    "description": "Map/dictionary literal"
+  },
+  "Read File": {
+    "prefix": "baca_file",
+    "body": ["variabel ${1:isi} = baca_file(${2:\"path.txt\"});"],
+    "description": "Read file contents"
+  },
+  "Write File": {
+    "prefix": "tulis_file",
+    "body": ["tulis_file(${1:\"path.txt\"}, ${2:\"content\"});"],
+    "description": "Write to file"
+  },
+  "Append File": {
+    "prefix": "tambah_file",
+    "body": ["tambah_file(${1:\"path.txt\"}, ${2:\"content\"});"],
+    "description": "Append to file"
+  },
+  "File Exists": {
+    "prefix": "ana_file",
+    "body": ["ana_file(${1:\"path.txt\"})"],
+    "description": "Check if file exists"
+  },
+  "HTTP GET": {
+    "prefix": "http_get",
+    "body": ["variabel ${1:response} = http_get(${2:\"https://api.example.com\"});"],
+    "description": "HTTP GET request"
+  },
+  "HTTP POST": {
+    "prefix": "http_post",
+    "body": ["variabel ${1:response} = http_post(${2:\"https://api.example.com\"}, ${3:data}, ${4:\"application/json\"});"],
+    "description": "HTTP POST request"
+  },
+  "Import Module": {
+    "prefix": "jupuk",
+    "body": ["jupuk \"${1:module.jmt}\";"],
+    "description": "Import module (jupuk)"
+  },
+  "Export Function": {
+    "prefix": "kirim",
+    "body": [
+      "kirim fungsi ${1:name}(${2:params}) {",
+      "\t${3:// body}",
+      "}"
+    ],
+    "description": "Export function (kirim)"
+  },
+  "Map Keys": {
+    "prefix": "kunci_map",
+    "body": ["kunci_map(${1:map})"],
+    "description": "Get all map keys"
+  },
+  "Map Has Key": {
+    "prefix": "ana_kunci",
+    "body": ["ana_kunci(${1:map}, ${2:\"key\"})"],
+    "description": "Check if map has key"
   }
 }

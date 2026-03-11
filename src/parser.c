@@ -110,6 +110,16 @@ static JametValue *exec_function_call(Function *func, Expr **arguments, size_t a
     Stmt *decl = func->declaration;
     size_t param_count = decl->as.func_decl.param_count;
 
+    /* Evaluate arguments in CALLER scope first */
+    size_t eval_count = param_count < arg_count ? param_count : arg_count;
+    JametValue **evaluated_args = NULL;
+    if (eval_count > 0) {
+        evaluated_args = (JametValue **)malloc(sizeof(JametValue *) * eval_count);
+        for (size_t i = 0; i < eval_count; i++) {
+            evaluated_args[i] = eval_expr(arguments[i]);
+        }
+    }
+
     /* Save current variable state */
     char *saved_names[MAX_VARS];
     JametValue *saved_values[MAX_VARS];
@@ -123,15 +133,17 @@ static JametValue *exec_function_call(Function *func, Expr **arguments, size_t a
     /* Clear globals for function scope */
     globals.count = 0;
 
-    /* Bind parameters to arguments */
-    for (size_t i = 0; i < param_count && i < arg_count; i++) {
+    /* Bind parameters to evaluated arguments */
+    for (size_t i = 0; i < eval_count; i++) {
         Token *param = decl->as.func_decl.params[i];
-        JametValue *arg_value = eval_expr(arguments[i]);
-        set_var(param->lexeme, arg_value);
+        set_var(param->lexeme, evaluated_args[i]);
     }
+    free(evaluated_args);
 
     /* Execute function body */
     JametValue *func_return = NULL;
+    int saved_break = break_flag;
+    JametValue *saved_return = return_value;
     break_flag = 0;
     return_value = NULL;
 
@@ -155,6 +167,8 @@ static JametValue *exec_function_call(Function *func, Expr **arguments, size_t a
     } else {
         func_return = jamet_value_new(JAMET_NONE);
     }
+    break_flag = saved_break;
+    return_value = saved_return;
 
     /* Restore variable state */
     for (int i = 0; i < globals.count; i++) {
@@ -530,9 +544,106 @@ static Expr *parse_primary(Parser *parser) {
         return arr;
     }
 
+    /* Map literal: {key: val, ...} */
+    if (match(parser, TOKEN_LBRACE)) {
+        Expr **keys = NULL;
+        Expr **values = NULL;
+        size_t count = 0;
+        size_t capacity = 4;
+        keys = (Expr **)malloc(sizeof(Expr *) * capacity);
+        values = (Expr **)malloc(sizeof(Expr *) * capacity);
+
+        if (!check(parser, TOKEN_RBRACE)) {
+            do {
+                if (count >= capacity) {
+                    capacity *= 2;
+                    keys = (Expr **)realloc(keys, sizeof(Expr *) * capacity);
+                    values = (Expr **)realloc(values, sizeof(Expr *) * capacity);
+                }
+                /* Key: string or identifier */
+                Expr *key;
+                if (match(parser, TOKEN_STRING)) {
+                    Token str_tok = *previous(parser);
+                    size_t len = strlen(str_tok.lexeme);
+                    char *raw = (char *)malloc(len - 1);
+                    strncpy(raw, str_tok.lexeme + 1, len - 2);
+                    raw[len - 2] = '\0';
+                    key = make_literal_expr(jamet_string_new(raw));
+                    free(raw);
+                } else if (match(parser, TOKEN_IDENTIFIER)) {
+                    key = make_literal_expr(jamet_string_new(previous(parser)->lexeme));
+                } else {
+                    key = parser_parse_expression(parser);
+                }
+                consume(parser, TOKEN_COLON, "Expected ':' after map key.");
+                Expr *val = parser_parse_expression(parser);
+                keys[count] = key;
+                values[count] = val;
+                count++;
+            } while (match(parser, TOKEN_COMMA));
+        }
+        consume(parser, TOKEN_RBRACE, "Expected '}' after map.");
+
+        Expr *expr = (Expr *)malloc(sizeof(Expr));
+        expr->type = EXPR_MAP;
+        expr->as.map.keys = keys;
+        expr->as.map.values = values;
+        expr->as.map.count = count;
+        return expr;
+    }
+
+    /* Lambda: fungsi(params) { body } as expression */
+    if (match(parser, TOKEN_FUNGSI)) {
+        consume(parser, TOKEN_LPAREN, "Expected '(' after 'fungsi' in lambda.");
+        Token **params = NULL;
+        size_t param_count = 0;
+        size_t param_capacity = 4;
+        params = (Token **)malloc(sizeof(Token *) * param_capacity);
+
+        if (!check(parser, TOKEN_RPAREN)) {
+            do {
+                if (param_count >= param_capacity) {
+                    param_capacity *= 2;
+                    params = (Token **)realloc(params, sizeof(Token *) * param_capacity);
+                }
+                consume(parser, TOKEN_IDENTIFIER, "Expected parameter name.");
+                Token *param = (Token *)malloc(sizeof(Token));
+                *param = *previous(parser);
+                params[param_count++] = param;
+            } while (match(parser, TOKEN_COMMA));
+        }
+        consume(parser, TOKEN_RPAREN, "Expected ')' after lambda parameters.");
+        consume(parser, TOKEN_LBRACE, "Expected '{' after lambda parameters.");
+        Stmt *body = parse_block(parser);
+
+        Expr *expr = (Expr *)malloc(sizeof(Expr));
+        expr->type = EXPR_LAMBDA;
+        expr->as.lambda.params = params;
+        expr->as.lambda.param_count = param_count;
+        expr->as.lambda.body = body;
+        return expr;
+    }
+
     if (match(parser, TOKEN_IDENTIFIER)) {
         Token name = *previous(parser);
         Expr *expr = NULL;
+
+        /* Check for postfix ++ or -- */
+        if (match(parser, TOKEN_PLUS_PLUS)) {
+            /* x++ -> x = x + 1, return old value (we simplify: treat as x = x + 1) */
+            Expr *one = make_literal_expr(jamet_integer_new(1));
+            Token plus_op = {TOKEN_PLUS, NULL, 0, 0};
+            plus_op.lexeme = strdup("+");
+            Expr *add = make_binary_expr(make_variable_expr(name), plus_op, one);
+            return make_assign_expr(name, add);
+        }
+        if (match(parser, TOKEN_MINUS_MINUS)) {
+            Expr *one = make_literal_expr(jamet_integer_new(1));
+            Token minus_op = {TOKEN_MINUS, NULL, 0, 0};
+            minus_op.lexeme = strdup("-");
+            Expr *sub = make_binary_expr(make_variable_expr(name), minus_op, one);
+            return make_assign_expr(name, sub);
+        }
         
         /* Check for function call */
         if (match(parser, TOKEN_LPAREN)) {
@@ -615,6 +726,7 @@ static Expr *parse_comparison(Parser *parser) {
     Expr *expr = parse_term(parser);
 
     while (match(parser, TOKEN_LEBIH_BESIK) || match(parser, TOKEN_LEBIH_CIYUT) ||
+           match(parser, TOKEN_LEBIH_SAMA) || match(parser, TOKEN_KURANG_SAMA) ||
            match(parser, TOKEN_SAMADENGAN) ||
            match(parser, TOKEN_BEDA)) {
         Token op = *previous(parser);
@@ -893,6 +1005,46 @@ static Stmt *parse_throw_statement(Parser *parser) {
     return make_throw_stmt(value);
 }
 
+/* Parse forEach statement: saben (variabel item : arr) { body } */
+static Stmt *parse_foreach_statement(Parser *parser) {
+    consume(parser, TOKEN_LPAREN, "Expected '(' after 'saben'.");
+    consume(parser, TOKEN_VARIABEL, "Expected 'variabel' in saben.");
+    consume(parser, TOKEN_IDENTIFIER, "Expected variable name in saben.");
+    Token var_name = *previous(parser);
+    consume(parser, TOKEN_COLON, "Expected ':' after variable in saben.");
+    Expr *iterable = parser_parse_expression(parser);
+    consume(parser, TOKEN_RPAREN, "Expected ')' after saben expression.");
+    Stmt *body = parse_statement(parser);
+
+    Stmt *stmt = (Stmt *)malloc(sizeof(Stmt));
+    stmt->type = STMT_FOREACH;
+    stmt->as.foreach_stmt.var_name = var_name;
+    stmt->as.foreach_stmt.iterable = iterable;
+    stmt->as.foreach_stmt.body = body;
+    return stmt;
+}
+
+/* Parse import statement: jupuk "path.jmt"; */
+static Stmt *parse_import_statement(Parser *parser) {
+    Expr *path = parser_parse_expression(parser);
+    consume(parser, TOKEN_SEMICOLON, "Expected ';' after jupuk path.");
+    Stmt *stmt = (Stmt *)malloc(sizeof(Stmt));
+    stmt->type = STMT_IMPORT;
+    stmt->as.import_stmt.path = path;
+    return stmt;
+}
+
+/* Parse export statement: kirim fungsi name(...) { ... } */
+static Stmt *parse_export_statement(Parser *parser) {
+    /* kirim must be followed by fungsi */
+    consume(parser, TOKEN_FUNGSI, "Expected 'fungsi' after 'kirim'.");
+    Stmt *func_decl = parse_function_declaration(parser);
+    Stmt *stmt = (Stmt *)malloc(sizeof(Stmt));
+    stmt->type = STMT_EXPORT;
+    stmt->as.export_stmt.declaration = func_decl;
+    return stmt;
+}
+
 /* Parse statement */
 static Stmt *parse_statement(Parser *parser) {
     if (match(parser, TOKEN_VARIABEL)) {
@@ -910,6 +1062,9 @@ static Stmt *parse_statement(Parser *parser) {
     if (match(parser, TOKEN_KANGGO)) {
         return parse_for_statement(parser);
     }
+    if (match(parser, TOKEN_SABEN)) {
+        return parse_foreach_statement(parser);
+    }
     if (match(parser, TOKEN_BALEKNO)) {
         return parse_return_statement(parser);
     }
@@ -924,6 +1079,12 @@ static Stmt *parse_statement(Parser *parser) {
     }
     if (match(parser, TOKEN_UNCAL)) {
         return parse_throw_statement(parser);
+    }
+    if (match(parser, TOKEN_JUPUK)) {
+        return parse_import_statement(parser);
+    }
+    if (match(parser, TOKEN_KIRIM)) {
+        return parse_export_statement(parser);
     }
     if (match(parser, TOKEN_NYERAT)) {
         return parse_print_statement(parser);
@@ -1005,6 +1166,21 @@ void expr_free(Expr *expr) {
             expr_free(expr->as.index_assign.index);
             expr_free(expr->as.index_assign.value);
             break;
+        case EXPR_LAMBDA:
+            for (size_t i = 0; i < expr->as.lambda.param_count; i++) {
+                free(expr->as.lambda.params[i]);
+            }
+            free(expr->as.lambda.params);
+            stmt_free(expr->as.lambda.body);
+            break;
+        case EXPR_MAP:
+            for (size_t i = 0; i < expr->as.map.count; i++) {
+                expr_free(expr->as.map.keys[i]);
+                expr_free(expr->as.map.values[i]);
+            }
+            free(expr->as.map.keys);
+            free(expr->as.map.values);
+            break;
         default:
             break;
     }
@@ -1062,12 +1238,21 @@ void stmt_free(Stmt *stmt) {
             break;
         case STMT_TRY:
             stmt_free(stmt->as.try_stmt.try_block);
-            /* Don't free catch_param.lexeme - owned by lexer tokens */
             stmt_free(stmt->as.try_stmt.catch_block);
             stmt_free(stmt->as.try_stmt.finally_block);
             break;
         case STMT_THROW:
             expr_free(stmt->as.throw_stmt.value);
+            break;
+        case STMT_FOREACH:
+            expr_free(stmt->as.foreach_stmt.iterable);
+            stmt_free(stmt->as.foreach_stmt.body);
+            break;
+        case STMT_IMPORT:
+            expr_free(stmt->as.import_stmt.path);
+            break;
+        case STMT_EXPORT:
+            stmt_free(stmt->as.export_stmt.declaration);
             break;
         default:
             break;
@@ -1153,6 +1338,62 @@ JametValue *eval_expr(Expr *expr) {
                     return exec_function_call(func, expr->as.call.arguments, expr->as.call.count);
                 }
 
+                /* Lambda call: variable holding a lambda */
+                JametValue *var_val = get_var(name);
+                if (var_val && var_val->type == JAMET_FUNCTION && var_val->as.ptr) {
+                    Expr *lambda_expr = (Expr *)var_val->as.ptr;
+                    if (lambda_expr->type == EXPR_LAMBDA) {
+                        size_t param_count = lambda_expr->as.lambda.param_count;
+                        size_t arg_count = expr->as.call.count;
+
+                        /* Save old values of params (if they exist) */
+                        JametValue *saved_param_vals[param_count];
+                        int saved_param_existed[param_count];
+                        for (size_t i = 0; i < param_count; i++) {
+                            JametValue *old = get_var(lambda_expr->as.lambda.params[i]->lexeme);
+                            if (old) {
+                                saved_param_vals[i] = jamet_value_copy(old);
+                                saved_param_existed[i] = 1;
+                            } else {
+                                saved_param_vals[i] = NULL;
+                                saved_param_existed[i] = 0;
+                            }
+                        }
+
+                        /* Bind parameters (lambdas capture enclosing scope) */
+                        for (size_t i = 0; i < param_count && i < arg_count; i++) {
+                            Token *param = lambda_expr->as.lambda.params[i];
+                            JametValue *arg_value = eval_expr(expr->as.call.arguments[i]);
+                            set_var(param->lexeme, arg_value);
+                        }
+
+                        /* Execute lambda body */
+                        int saved_break = break_flag;
+                        JametValue *saved_return = return_value;
+                        break_flag = 0;
+                        return_value = NULL;
+                        exec_stmt(lambda_expr->as.lambda.body);
+
+                        JametValue *func_return = NULL;
+                        if (return_value) {
+                            func_return = return_value;
+                            return_value = NULL;
+                        } else {
+                            func_return = jamet_value_new(JAMET_NONE);
+                        }
+                        break_flag = saved_break;
+                        return_value = saved_return;
+
+                        /* Restore old param values */
+                        for (size_t i = 0; i < param_count; i++) {
+                            if (saved_param_existed[i]) {
+                                set_var(lambda_expr->as.lambda.params[i]->lexeme, saved_param_vals[i]);
+                            }
+                        }
+                        return func_return;
+                    }
+                }
+
                 /* Standard library functions */
                 {
                     size_t ac = expr->as.call.count;
@@ -1198,6 +1439,8 @@ JametValue *eval_expr(Expr *expr) {
                 else if (op == TOKEN_BEDA) result = jamet_boolean_new(l != r);
                 else if (op == TOKEN_LEBIH_BESIK) result = jamet_boolean_new(l > r);
                 else if (op == TOKEN_LEBIH_CIYUT) result = jamet_boolean_new(l < r);
+                else if (op == TOKEN_LEBIH_SAMA) result = jamet_boolean_new(l >= r);
+                else if (op == TOKEN_KURANG_SAMA) result = jamet_boolean_new(l <= r);
                 else if (op == TOKEN_LAN) result = jamet_boolean_new(l && r);
                 else if (op == TOKEN_UTAWA) result = jamet_boolean_new(l || r);
             } else if ((left->type == JAMET_FLOAT || right->type == JAMET_FLOAT) &&
@@ -1213,6 +1456,8 @@ JametValue *eval_expr(Expr *expr) {
                 else if (op == TOKEN_BEDA) result = jamet_boolean_new(l != r);
                 else if (op == TOKEN_LEBIH_BESIK) result = jamet_boolean_new(l > r);
                 else if (op == TOKEN_LEBIH_CIYUT) result = jamet_boolean_new(l < r);
+                else if (op == TOKEN_LEBIH_SAMA) result = jamet_boolean_new(l >= r);
+                else if (op == TOKEN_KURANG_SAMA) result = jamet_boolean_new(l <= r);
                 else if (op == TOKEN_LAN) result = jamet_boolean_new(l && r);
                 else if (op == TOKEN_UTAWA) result = jamet_boolean_new(l || r);
             } else if (left->type == JAMET_BOOLEAN && right->type == JAMET_BOOLEAN) {
@@ -1284,6 +1529,12 @@ JametValue *eval_expr(Expr *expr) {
                     jamet_value_free(result);
                     result = jamet_string_new(ch);
                 }
+            } else if (object->type == JAMET_MAP && idx_val->type == JAMET_STRING) {
+                JametValue *found = jamet_map_get(object, idx_val->as.string.value);
+                if (found) {
+                    jamet_value_free(result);
+                    result = jamet_value_copy(found);
+                }
             }
 
             jamet_value_free(object);
@@ -1298,20 +1549,44 @@ JametValue *eval_expr(Expr *expr) {
             JametValue *new_val = eval_expr(expr->as.index_assign.value);
 
             if (obj_expr->type == EXPR_VARIABLE) {
-                JametValue *arr = get_var(obj_expr->as.variable.name.lexeme);
-                if (arr && arr->type == JAMET_ARRAY && idx_val->type == JAMET_INTEGER) {
+                JametValue *obj = get_var(obj_expr->as.variable.name.lexeme);
+                if (obj && obj->type == JAMET_ARRAY && idx_val->type == JAMET_INTEGER) {
                     long idx = idx_val->as.integer;
-                    if (idx < 0) idx = (long)arr->as.array.count + idx;
-                    if (idx >= 0 && (size_t)idx < arr->as.array.count) {
-                        jamet_value_free(arr->as.array.elements[idx]);
-                        arr->as.array.elements[idx] = jamet_value_copy(new_val);
+                    if (idx < 0) idx = (long)obj->as.array.count + idx;
+                    if (idx >= 0 && (size_t)idx < obj->as.array.count) {
+                        jamet_value_free(obj->as.array.elements[idx]);
+                        obj->as.array.elements[idx] = jamet_value_copy(new_val);
                     }
+                } else if (obj && obj->type == JAMET_MAP && idx_val->type == JAMET_STRING) {
+                    jamet_map_set(obj, idx_val->as.string.value, jamet_value_copy(new_val));
                 }
             }
 
             jamet_value_free(idx_val);
             return new_val;
         }
+
+        case EXPR_MAP: {
+            JametValue *map = jamet_map_new(expr->as.map.count > 0 ? expr->as.map.count : 8);
+            for (size_t i = 0; i < expr->as.map.count; i++) {
+                JametValue *key = eval_expr(expr->as.map.keys[i]);
+                JametValue *val = eval_expr(expr->as.map.values[i]);
+                if (key->type == JAMET_STRING) {
+                    jamet_map_set(map, key->as.string.value, val);
+                }
+                jamet_value_free(key);
+            }
+            return map;
+        }
+
+        case EXPR_LAMBDA:
+            /* Return a special value that stores the lambda expression pointer */
+            /* We store lambdas as JAMET_FUNCTION with ptr pointing to the Expr */
+            {
+                JametValue *v = jamet_value_new(JAMET_FUNCTION);
+                v->as.ptr = (void *)expr;
+                return v;
+            }
 
         default:
             return jamet_value_new(JAMET_NONE);
@@ -1544,6 +1819,106 @@ void exec_stmt(Stmt *stmt) {
                 jamet_value_free(thrown_value);
                 thrown_value = NULL;
             }
+            break;
+        }
+        case STMT_FOREACH: {
+            JametValue *iterable = eval_expr(stmt->as.foreach_stmt.iterable);
+
+            if (iterable->type == JAMET_ARRAY) {
+                for (size_t i = 0; i < iterable->as.array.count; i++) {
+                    set_var(stmt->as.foreach_stmt.var_name.lexeme,
+                            jamet_value_copy(iterable->as.array.elements[i]));
+                    exec_stmt(stmt->as.foreach_stmt.body);
+
+                    if (break_flag) {
+                        break_flag = 0;
+                        break;
+                    }
+                    if (continue_flag) {
+                        continue_flag = 0;
+                        continue;
+                    }
+                }
+            } else if (iterable->type == JAMET_MAP) {
+                for (size_t i = 0; i < iterable->as.map.count; i++) {
+                    set_var(stmt->as.foreach_stmt.var_name.lexeme,
+                            jamet_string_new(iterable->as.map.keys[i]));
+                    exec_stmt(stmt->as.foreach_stmt.body);
+
+                    if (break_flag) {
+                        break_flag = 0;
+                        break;
+                    }
+                    if (continue_flag) {
+                        continue_flag = 0;
+                        continue;
+                    }
+                }
+            } else {
+                fprintf(stderr, "Kesalahan: saben mbutuhke array utawa map\n");
+            }
+
+            jamet_value_free(iterable);
+            break;
+        }
+        case STMT_IMPORT: {
+            JametValue *path_val = eval_expr(stmt->as.import_stmt.path);
+            if (path_val->type != JAMET_STRING) {
+                fprintf(stderr, "Kesalahan: jupuk mbutuhke string path\n");
+                jamet_value_free(path_val);
+                break;
+            }
+
+            /* Read the file */
+            FILE *f = fopen(path_val->as.string.value, "r");
+            if (!f) {
+                fprintf(stderr, "Kesalahan: Ora bisa mbukak file '%s'\n", path_val->as.string.value);
+                jamet_value_free(path_val);
+                break;
+            }
+
+            fseek(f, 0, SEEK_END);
+            long fsize = ftell(f);
+            fseek(f, 0, SEEK_SET);
+            char *source = (char *)malloc(fsize + 1);
+            fread(source, 1, fsize, f);
+            source[fsize] = '\0';
+            fclose(f);
+
+            /* Lex and parse the imported file */
+            Lexer *import_lexer = lexer_new(source);
+            size_t token_count;
+            Token *tokens = lexer_scan_all(import_lexer, &token_count);
+            lexer_free(import_lexer);
+
+            Parser *import_parser = parser_new(tokens, token_count);
+            size_t stmt_count;
+            Stmt **stmts = parser_parse_program(import_parser, &stmt_count);
+            parser_free(import_parser);
+
+            /* Execute only exported statements, register all functions */
+            int saved_quiet = quiet_mode;
+            quiet_mode = 1;
+            for (size_t i = 0; i < stmt_count; i++) {
+                if (stmts[i]->type == STMT_EXPORT) {
+                    exec_stmt(stmts[i]->as.export_stmt.declaration);
+                } else if (stmts[i]->type == STMT_FUNC_DECL) {
+                    /* Non-exported functions in imported file are not registered */
+                }
+            }
+            quiet_mode = saved_quiet;
+
+            /* Don't free stmts - they may be referenced by registered functions */
+            free(stmts);
+            free(source);
+            /* Don't free tokens - they're referenced by AST nodes */
+
+            jamet_value_free(path_val);
+            break;
+        }
+        case STMT_EXPORT: {
+            /* Export just registers the function declaration */
+            exec_stmt(stmt->as.export_stmt.declaration);
             break;
         }
         default:

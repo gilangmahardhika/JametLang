@@ -21,6 +21,8 @@ static JametValue *fn_panjang(JametValue **args, size_t count) {
         return jamet_integer_new((long)args[0]->as.string.length);
     } else if (args[0]->type == JAMET_ARRAY) {
         return jamet_integer_new((long)args[0]->as.array.count);
+    } else if (args[0]->type == JAMET_MAP) {
+        return jamet_integer_new((long)args[0]->as.map.count);
     }
     return jamet_integer_new(0);
 }
@@ -376,6 +378,8 @@ static JametValue *fn_jinis(JametValue **args, size_t count) {
         case JAMET_STRING:   return jamet_string_new("string");
         case JAMET_BOOLEAN:  return jamet_string_new("boolean");
         case JAMET_ARRAY:    return jamet_string_new("array");
+        case JAMET_MAP:      return jamet_string_new("map");
+        case JAMET_FUNCTION: return jamet_string_new("fungsi");
         default:             return jamet_string_new("ora dikenal");
     }
 }
@@ -534,8 +538,168 @@ static JametValue *fn_wektu(JametValue **args, size_t count) {
     return jamet_integer_new((long)time(NULL));
 }
 
-/* turu(ms) - Sleep for milliseconds (not blocking, just a placeholder) */
-/* We'll skip actual sleep to avoid blocking the interpreter */
+/* ==================== File I/O Functions ==================== */
+
+/* baca_file(path) - Read entire file as string */
+static JametValue *fn_baca_file(JametValue **args, size_t count) {
+    if (count < 1 || args[0]->type != JAMET_STRING) return jamet_value_new(JAMET_NONE);
+
+    FILE *f = fopen(args[0]->as.string.value, "r");
+    if (!f) return jamet_value_new(JAMET_NONE);
+
+    fseek(f, 0, SEEK_END);
+    long fsize = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    char *content = (char *)malloc(fsize + 1);
+    fread(content, 1, fsize, f);
+    content[fsize] = '\0';
+    fclose(f);
+
+    JametValue *result = jamet_string_new(content);
+    free(content);
+    return result;
+}
+
+/* tulis_file(path, content) - Write string to file (overwrite) */
+static JametValue *fn_tulis_file(JametValue **args, size_t count) {
+    if (count < 2 || args[0]->type != JAMET_STRING || args[1]->type != JAMET_STRING)
+        return jamet_boolean_new(0);
+
+    FILE *f = fopen(args[0]->as.string.value, "w");
+    if (!f) return jamet_boolean_new(0);
+
+    fprintf(f, "%s", args[1]->as.string.value);
+    fclose(f);
+    return jamet_boolean_new(1);
+}
+
+/* tambah_file(path, content) - Append string to file */
+static JametValue *fn_tambah_file(JametValue **args, size_t count) {
+    if (count < 2 || args[0]->type != JAMET_STRING || args[1]->type != JAMET_STRING)
+        return jamet_boolean_new(0);
+
+    FILE *f = fopen(args[0]->as.string.value, "a");
+    if (!f) return jamet_boolean_new(0);
+
+    fprintf(f, "%s", args[1]->as.string.value);
+    fclose(f);
+    return jamet_boolean_new(1);
+}
+
+/* ana_file(path) - Check if file exists */
+static JametValue *fn_ana_file(JametValue **args, size_t count) {
+    if (count < 1 || args[0]->type != JAMET_STRING) return jamet_boolean_new(0);
+
+    FILE *f = fopen(args[0]->as.string.value, "r");
+    if (f) {
+        fclose(f);
+        return jamet_boolean_new(1);
+    }
+    return jamet_boolean_new(0);
+}
+
+/* ==================== HTTP Functions ==================== */
+
+/* Helper: execute curl command and return output */
+static char *exec_curl(const char *cmd) {
+    FILE *fp = popen(cmd, "r");
+    if (!fp) return NULL;
+
+    size_t buf_size = 4096;
+    char *buffer = (char *)malloc(buf_size);
+    size_t pos = 0;
+    char chunk[1024];
+
+    while (fgets(chunk, sizeof(chunk), fp)) {
+        size_t chunk_len = strlen(chunk);
+        while (pos + chunk_len + 1 > buf_size) {
+            buf_size *= 2;
+            buffer = (char *)realloc(buffer, buf_size);
+        }
+        memcpy(buffer + pos, chunk, chunk_len);
+        pos += chunk_len;
+    }
+    buffer[pos] = '\0';
+    pclose(fp);
+    return buffer;
+}
+
+/* http_get(url) - HTTP GET request */
+static JametValue *fn_http_get(JametValue **args, size_t count) {
+    if (count < 1 || args[0]->type != JAMET_STRING) return jamet_value_new(JAMET_NONE);
+
+    size_t cmd_len = strlen(args[0]->as.string.value) + 64;
+    char *cmd = (char *)malloc(cmd_len);
+    snprintf(cmd, cmd_len, "curl -s \"%s\"", args[0]->as.string.value);
+
+    char *response = exec_curl(cmd);
+    free(cmd);
+
+    if (!response) return jamet_value_new(JAMET_NONE);
+
+    JametValue *result = jamet_string_new(response);
+    free(response);
+    return result;
+}
+
+/* http_post(url, body, content_type) - HTTP POST request */
+static JametValue *fn_http_post(JametValue **args, size_t count) {
+    if (count < 2 || args[0]->type != JAMET_STRING || args[1]->type != JAMET_STRING)
+        return jamet_value_new(JAMET_NONE);
+
+    const char *content_type = "application/json";
+    if (count >= 3 && args[2]->type == JAMET_STRING) {
+        content_type = args[2]->as.string.value;
+    }
+
+    size_t cmd_len = strlen(args[0]->as.string.value) + strlen(args[1]->as.string.value) +
+                     strlen(content_type) + 128;
+    char *cmd = (char *)malloc(cmd_len);
+    snprintf(cmd, cmd_len, "curl -s -X POST -H \"Content-Type: %s\" -d '%s' \"%s\"",
+             content_type, args[1]->as.string.value, args[0]->as.string.value);
+
+    char *response = exec_curl(cmd);
+    free(cmd);
+
+    if (!response) return jamet_value_new(JAMET_NONE);
+
+    JametValue *result = jamet_string_new(response);
+    free(response);
+    return result;
+}
+
+/* ==================== Map Helper Functions ==================== */
+
+/* kunci_map(map) - Get all keys of a map as array */
+static JametValue *fn_kunci_map(JametValue **args, size_t count) {
+    if (count < 1 || args[0]->type != JAMET_MAP) return jamet_array_new(0);
+
+    JametValue *arr = jamet_array_new(args[0]->as.map.count);
+    for (size_t i = 0; i < args[0]->as.map.count; i++) {
+        jamet_array_push(arr, jamet_string_new(args[0]->as.map.keys[i]));
+    }
+    return arr;
+}
+
+/* nilai_map(map) - Get all values of a map as array */
+static JametValue *fn_nilai_map(JametValue **args, size_t count) {
+    if (count < 1 || args[0]->type != JAMET_MAP) return jamet_array_new(0);
+
+    JametValue *arr = jamet_array_new(args[0]->as.map.count);
+    for (size_t i = 0; i < args[0]->as.map.count; i++) {
+        jamet_array_push(arr, jamet_value_copy(args[0]->as.map.values[i]));
+    }
+    return arr;
+}
+
+/* ana_kunci(map, key) - Check if map has key */
+static JametValue *fn_ana_kunci(JametValue **args, size_t count) {
+    if (count < 2 || args[0]->type != JAMET_MAP || args[1]->type != JAMET_STRING)
+        return jamet_boolean_new(0);
+
+    JametValue *found = jamet_map_get(args[0], args[1]->as.string.value);
+    return jamet_boolean_new(found != NULL);
+}
 
 /* ==================== Dispatch Table ==================== */
 
@@ -583,6 +747,21 @@ static const StdlibEntry stdlib_functions[] = {
 
     /* Utility */
     {"wektu",        fn_wektu},
+
+    /* File I/O */
+    {"baca_file",    fn_baca_file},
+    {"tulis_file",   fn_tulis_file},
+    {"tambah_file",  fn_tambah_file},
+    {"ana_file",     fn_ana_file},
+
+    /* HTTP */
+    {"http_get",     fn_http_get},
+    {"http_post",    fn_http_post},
+
+    /* Map helpers */
+    {"kunci_map",    fn_kunci_map},
+    {"nilai_map",    fn_nilai_map},
+    {"ana_kunci",    fn_ana_kunci},
 
     {NULL, NULL}
 };

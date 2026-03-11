@@ -1,0 +1,15 @@
+// Test Import/Export Module System (jupuk/kirim)
+
+nyerat("=== Test Module System ===");
+
+// Import exported functions from math_module.jmt
+jupuk "examples/math_module.jmt";
+
+// Use exported functions
+nyerat("kuadrat(5) = " + kuadrat(5));       // 25
+nyerat("kubik(3) = " + kubik(3));           // 27
+nyerat("faktorial(5) = " + faktorial(5));   // 120
+nyerat("faktorial(10) = " + faktorial(10)); // 3628800
+
+nyerat("");
+nyerat("=== Kabeh test rampung! ===");

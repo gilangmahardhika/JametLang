@@ -16,6 +16,7 @@ typedef enum {
     JAMET_STRING,    /* String - Teks */
     JAMET_BOOLEAN,   /* Boolean - Bener/Salah */
     JAMET_ARRAY,     /* Array - Kumpulan data */
+    JAMET_MAP,       /* Map/Dictionary - Kamus */
     JAMET_OBJECT,    /* Object - Objek */
     JAMET_FUNCTION   /* Function - Fungsi */
 } JametType;
@@ -39,6 +40,12 @@ struct JametValue {
             size_t count;
             size_t capacity;
         } array;
+        struct {                /* Nilai map/dictionary */
+            char **keys;
+            JametValue **values;
+            size_t count;
+            size_t capacity;
+        } map;
         void *ptr;              /* Pointer kanggo object/function */
     } as;
 };
@@ -77,6 +84,9 @@ typedef enum {
     TOKEN_AWAS,        /* catch */
     TOKEN_RAMPUNGKE,   /* finally */
     TOKEN_UNCAL,       /* throw */
+    TOKEN_SABEN,       /* forEach */
+    TOKEN_JUPUK,       /* import */
+    TOKEN_KIRIM,       /* export */
 
     /* Operators & Symbols */
     TOKEN_PLUS,        /* + */
@@ -88,8 +98,12 @@ typedef enum {
     TOKEN_BEDA,        /* != */
     TOKEN_LEBIH_BESIK, /* > */
     TOKEN_LEBIH_CIYUT, /* < */
+    TOKEN_LEBIH_SAMA,  /* >= */
+    TOKEN_KURANG_SAMA, /* <= */
     TOKEN_PLUS_SAMA,   /* += */
     TOKEN_MINUS_SAMA,  /* -= */
+    TOKEN_PLUS_PLUS,   /* ++ */
+    TOKEN_MINUS_MINUS, /* -- */
     TOKEN_LPAREN,      /* ( */
     TOKEN_RPAREN,      /* ) */
     TOKEN_LBRACE,      /* { */
@@ -145,5 +159,14 @@ int jamet_value_equals(JametValue *a, JametValue *b);
 
 /* Nambah elemen ing array */
 void jamet_array_push(JametValue *array, JametValue *element);
+
+/* Mbuat map anyar */
+JametValue *jamet_map_new(size_t capacity);
+
+/* Set map entry */
+void jamet_map_set(JametValue *map, const char *key, JametValue *value);
+
+/* Get map entry */
+JametValue *jamet_map_get(JametValue *map, const char *key);
 
 #endif /* JAMET_TYPES_H */

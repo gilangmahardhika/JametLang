@@ -115,7 +115,7 @@ void repl_execute_line(const char *line) {
     /* Check for commands */
     if (line[0] == '.') {
         if (strcmp(line, ".metu") == 0) {
-            printf("Matur nuwun! Sampun jumpa!\n");
+            printf("Matur nuwun! Nyangoni Slamet!\n");
             exit(0);
         } else if (strcmp(line, ".tulung") == 0) {
             printf("\n--- Perintah JametLang REPL ---\n");
@@ -212,7 +212,7 @@ void repl_run(void) {
         free(line);
     }
 
-    printf("\nMatur nuwun! Sampun jumpa!\n");
+    printf("\nMatur nuwun! Nyangoni Slamet!\n");
 #else
     /* Use fallback implementation */
     repl_run_fallback();
@@ -234,7 +234,7 @@ void repl_run_fallback(void) {
 
         if (read == -1) {
             /* EOF or error */
-            printf("\nMatur nuwun! Sampun jumpa!\n");
+            printf("\nMatur nuwun! Nyangoni Slamet!\n");
             break;
         }
 

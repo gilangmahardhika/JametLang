@@ -73,7 +73,7 @@
       "patterns": [
         {
           "name": "keyword.control.jametlang",
-          "match": "\\b(nek|kajaba|kanggo|kango|sawise|balekno|balekne|pegat|terusake|jancuk|awas|rampungke|uncal)\\b"
+          "match": "\\b(nek|kajaba|kanggo|kango|sawise|balekno|balekne|pegat|terusake|jancuk|awas|rampungke|uncal|saben|jupuk|kirim)\\b"
         }
       ]
     },
@@ -89,7 +89,7 @@
       "patterns": [
         {
           "name": "support.function.builtin.jametlang",
-          "match": "\\b(nyerat|tulung|moco|panjang|potong|huruf_gedhe|huruf_cilik|ganti|ngandhut|pisah|mutlak|pangkat|akar|acak|bulatke|lantai|langit|sisa|dadi_angka|dadi_desimal|dadi_teks|jinis|wektu|tambah|hapus|gabung|balik|urutke|irisan|indeks)\\b"
+          "match": "\\b(nyerat|tulung|moco|panjang|potong|huruf_gedhe|huruf_cilik|ganti|ngandhut|pisah|mutlak|pangkat|akar|acak|bulatke|lantai|langit|sisa|dadi_angka|dadi_desimal|dadi_teks|jinis|wektu|tambah|hapus|gabung|balik|urutke|irisan|indeks|baca_file|tulis_file|tambah_file|ana_file|http_get|http_post|kunci_map|nilai_map|ana_kunci)\\b"
         }
       ]
     },
@@ -117,11 +117,11 @@
         },
         {
           "name": "keyword.operator.assignment.jametlang",
-          "match": "\\+=|-=|="
+          "match": "\\+\\+|--|\\+=|-=|="
         },
         {
           "name": "keyword.operator.arithmetic.jametlang",
-          "match": "\\+|-|\\*|/|%"
+          "match": "\\+|-|\\*|/|%|:"
         },
         {
           "name": "keyword.operator.logical.jametlang",

@@ -39,6 +39,9 @@ static const Keyword keywords[] = {
     {"awas", TOKEN_AWAS},            /* catch */
     {"rampungke", TOKEN_RAMPUNGKE},  /* finally */
     {"uncal", TOKEN_UNCAL},          /* throw */
+    {"saben", TOKEN_SABEN},          /* forEach */
+    {"jupuk", TOKEN_JUPUK},          /* import */
+    {"kirim", TOKEN_KIRIM},          /* export */
 
     /* Variasi ejaan (nganggo a/e/o) */
     {"kango", TOKEN_KANGGO},         /* for - tanpa go */
@@ -305,10 +308,16 @@ Token lexer_scan_token(Lexer *lexer) {
             if (lexer_match(lexer, '=')) {
                 return make_token(lexer, TOKEN_PLUS_SAMA);
             }
+            if (lexer_match(lexer, '+')) {
+                return make_token(lexer, TOKEN_PLUS_PLUS);
+            }
             return make_token(lexer, TOKEN_PLUS);
         case '-':
             if (lexer_match(lexer, '=')) {
                 return make_token(lexer, TOKEN_MINUS_SAMA);
+            }
+            if (lexer_match(lexer, '-')) {
+                return make_token(lexer, TOKEN_MINUS_MINUS);
             }
             return make_token(lexer, TOKEN_MINUS);
         case '*':
@@ -329,8 +338,14 @@ Token lexer_scan_token(Lexer *lexer) {
             /* Single ! bisa dadi ORA (not) */
             return make_token(lexer, TOKEN_ORA);
         case '>':
+            if (lexer_match(lexer, '=')) {
+                return make_token(lexer, TOKEN_LEBIH_SAMA);
+            }
             return make_token(lexer, TOKEN_LEBIH_BESIK);
         case '<':
+            if (lexer_match(lexer, '=')) {
+                return make_token(lexer, TOKEN_KURANG_SAMA);
+            }
             return make_token(lexer, TOKEN_LEBIH_CIYUT);
         case '(':
             return make_token(lexer, TOKEN_LPAREN);
