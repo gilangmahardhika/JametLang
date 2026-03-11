@@ -241,6 +241,7 @@ JametLang/
 │   ├── test_features.jmt  # Test new features (operators, lambda, map, etc.)
 │   ├── test_module.jmt    # Test module system (jupuk/kirim)
 │   ├── math_module.jmt    # Example module file
+│   ├── test_advanced.jmt  # Test datetime, crypto, JSON, CSV, concurrency
 │   └── test_simple.jmt    # Test sederhana
 ├── jametlang-vscode/    # VSCode Extension
 │   ├── syntaxes/        # TextMate grammar
@@ -276,6 +277,12 @@ JametLang/
 - **File I/O** — `baca_file`, `tulis_file`, `tambah_file`, `ana_file`
 - **HTTP Client** — `http_get(url)`, `http_post(url, body)`
 - **Module System** — `jupuk` (import) / `kirim` (export)
+- **String Escape** — `\n`, `\t`, `\r`, `\"`, `\\`
+- **DateTime** — `tanggal_saiki`, `format_tanggal`, `parsing_tanggal`, `wektu_mili`, `turu`, `zona_wektu`
+- **Concurrency** — `gawe_tugas`, `enteni_tugas`, `kunci_mutex`, `buka_mutex`
+- **Networking** — `soket_tcp`, `soket_kirim`, `soket_tampa`, `soket_server`, `soket_terima`
+- **Kriptografi** — `hash_md5`, `hash_sha256`, `hash_sha512`, `hmac_sha256`, `base64_encode/decode`
+- **Serialisasi** — `json_parsing`, `json_format`, `csv_parsing`, `csv_format`
 
 ## Standard Library
 
@@ -348,6 +355,60 @@ JametLang/
 | ------ | ---------- | ----- |
 | `http_get(url)` | HTTP GET request | `http_get("https://api.example.com")` |
 | `http_post(url, body, type)` | HTTP POST request | `http_post(url, data, "application/json")` |
+
+### DateTime (Tanggal & Waktu)
+
+| Fungsi | Keterangan | Conto |
+| ------ | ---------- | ----- |
+| `tanggal_saiki()` | Map tanggal saiki | `tanggal_saiki()` → `{taun: 2026, ...}` |
+| `format_tanggal(fmt, ts?)` | Format tanggal karo strftime | `format_tanggal("%Y-%m-%d")` |
+| `parsing_tanggal(str, fmt)` | Parse string dadi timestamp | `parsing_tanggal("2025-01-15", "%Y-%m-%d")` |
+| `wektu_mili()` | Wektu saiki ing milidetik | `wektu_mili()` → `1773231335131` |
+| `turu(ms)` | Sleep milidetik | `turu(1000)` — turu 1 detik |
+| `zona_wektu()` | Zona wektu saiki | `zona_wektu()` → `"WIB (UTC+0700)"` |
+| `beda_wektu(ts1, ts2)` | Beda antarane 2 timestamp | `beda_wektu(ts2, ts1)` → detik |
+
+### Concurrency (Tugas & Mutex)
+
+| Fungsi | Keterangan | Conto |
+| ------ | ---------- | ----- |
+| `gawe_tugas()` | Gawe tugas background | `gawe_tugas()` → task ID |
+| `enteni_tugas(id)` | Enteni tugas rampung | `enteni_tugas(0)` |
+| `tugas_rampung(id)` | Cek tugas wis rampung | `tugas_rampung(0)` → `bener` |
+| `kunci_mutex()` | Kunci mutex | `kunci_mutex()` |
+| `buka_mutex()` | Buka mutex | `buka_mutex()` |
+
+### Networking (Socket)
+
+| Fungsi | Keterangan | Conto |
+| ------ | ---------- | ----- |
+| `soket_tcp(host, port)` | Sambung TCP | `soket_tcp("localhost", 8080)` |
+| `soket_kirim(fd, data)` | Kirim data | `soket_kirim(fd, "GET / HTTP/1.1\r\n\r\n")` |
+| `soket_tampa(fd, max?)` | Tampa data | `soket_tampa(fd, 4096)` |
+| `soket_tutup(fd)` | Tutup soket | `soket_tutup(fd)` |
+| `soket_server(port)` | Gawe server TCP | `soket_server(8080)` |
+| `soket_terima(server_fd)` | Terima koneksi | `soket_terima(server_fd)` |
+
+### Kriptografi & Hashing
+
+| Fungsi | Keterangan | Conto |
+| ------ | ---------- | ----- |
+| `hash_md5(str)` | Hash MD5 | `hash_md5("halo")` |
+| `hash_sha1(str)` | Hash SHA1 | `hash_sha1("halo")` |
+| `hash_sha256(str)` | Hash SHA256 | `hash_sha256("halo")` |
+| `hash_sha512(str)` | Hash SHA512 | `hash_sha512("halo")` |
+| `hmac_sha256(key, data)` | HMAC-SHA256 | `hmac_sha256("kunci", "data")` |
+| `base64_encode(str)` | Encode Base64 | `base64_encode("Halo")` → `"SGFsbw=="` |
+| `base64_decode(str)` | Decode Base64 | `base64_decode("SGFsbw==")` → `"Halo"` |
+
+### Serialisasi (JSON & CSV)
+
+| Fungsi | Keterangan | Conto |
+| ------ | ---------- | ----- |
+| `json_parsing(str)` | Parse JSON dadi value | `json_parsing("{\"a\":1}")` → map |
+| `json_format(value)` | Format value dadi JSON | `json_format(map)` → string |
+| `csv_parsing(str, delim?)` | Parse CSV dadi array | `csv_parsing("a,b\n1,2")` |
+| `csv_format(arr, delim?)` | Format array dadi CSV | `csv_format(data)` |
 
 ### Utilitas
 
@@ -506,6 +567,89 @@ nyerat(kuadrat(5));      // 25
 nyerat(faktorial(10));   // 3628800
 ```
 
+## DateTime (Tanggal & Waktu)
+
+```jmt
+// Tanggal saiki
+variabel saiki = tanggal_saiki();
+nyerat(saiki["taun"]);   // 2026
+nyerat(saiki["sasi"]);   // 3
+nyerat(saiki["dina"]);   // 11
+
+// Format tanggal
+nyerat(format_tanggal("%Y-%m-%d %H:%M:%S"));   // 2026-03-11 19:15:35
+nyerat(format_tanggal("%A, %d %B %Y"));         // Wednesday, 11 March 2026
+
+// Parsing tanggal
+variabel ts = parsing_tanggal("2025-01-15", "%Y-%m-%d");
+nyerat(format_tanggal("%Y-%m-%d", ts));          // 2025-01-15
+
+// Wektu mili & zona
+nyerat(wektu_mili());     // 1773231335131
+nyerat(zona_wektu());     // WIB (UTC+0700)
+
+// Sleep
+turu(1000);               // turu 1 detik
+```
+
+## Kriptografi & Hashing
+
+```jmt
+// Hashing
+nyerat(hash_md5("halo"));      // hex string
+nyerat(hash_sha256("halo"));   // hex string
+nyerat(hash_sha512("halo"));   // hex string
+
+// HMAC
+nyerat(hmac_sha256("kunci_rahasia", "data"));
+
+// Base64
+variabel enc = base64_encode("Hello, World!");  // SGVsbG8sIFdvcmxkIQ==
+variabel dec = base64_decode(enc);              // Hello, World!
+```
+
+## Serialisasi (JSON & CSV)
+
+```jmt
+// JSON format (value -> string)
+variabel data = {"nama": "Budi", "umur": 25, "hobi": ["coding", "gaming"]};
+variabel json_str = json_format(data);
+nyerat(json_str);   // {"nama":"Budi","umur":25,"hobi":["coding","gaming"]}
+
+// JSON parsing (string -> value)
+variabel parsed = json_parsing("{\"nama\":\"Siti\",\"umur\":30}");
+nyerat(parsed["nama"]);   // Siti
+
+// CSV format
+variabel csv_data = [["Nama", "Umur"], ["Budi", "25"], ["Siti", "30"]];
+nyerat(csv_format(csv_data));
+
+// CSV parsing
+variabel csv = csv_parsing("nama,umur\nAlice,25\nBob,30");
+saben (variabel row : csv) {
+    nyerat(row);
+}
+```
+
+## Networking (Socket)
+
+```jmt
+// TCP Client
+variabel fd = soket_tcp("example.com", 80);
+soket_kirim(fd, "GET / HTTP/1.1\r\nHost: example.com\r\n\r\n");
+variabel response = soket_tampa(fd);
+nyerat(response);
+soket_tutup(fd);
+
+// TCP Server
+variabel server = soket_server(8080);
+variabel client = soket_terima(server);
+variabel pesan = soket_tampa(client);
+soket_kirim(client, "HTTP/1.1 200 OK\r\n\r\nHalo!");
+soket_tutup(client);
+soket_tutup(server);
+```
+
 ## Exception Handling
 
 JametLang nyedhiyakake exception handling nganggo kata kunci Jawa:
@@ -568,6 +712,12 @@ uncal 3.14;             // float
 - [x] File I/O — `baca_file`, `tulis_file`, `tambah_file`, `ana_file`
 - [x] HTTP Client — `http_get`, `http_post` (via curl)
 - [x] Module System — `jupuk` (import) / `kirim` (export)
+- [x] String Escape Sequences — `\n`, `\t`, `\r`, `\"`, `\\`
+- [x] DateTime — `tanggal_saiki`, `format_tanggal`, `parsing_tanggal`, `wektu_mili`, `turu`, `zona_wektu`
+- [x] Concurrency — `gawe_tugas`, `enteni_tugas`, `tugas_rampung`, `kunci_mutex`, `buka_mutex`
+- [x] Networking (Socket) — `soket_tcp`, `soket_kirim`, `soket_tampa`, `soket_tutup`, `soket_server`, `soket_terima`
+- [x] Kriptografi & Hashing — `hash_md5`, `hash_sha1`, `hash_sha256`, `hash_sha512`, `hmac_sha256`, `base64_encode/decode`
+- [x] Serialisasi — `json_parsing`, `json_format`, `csv_parsing`, `csv_format`
 
 ## VSCode Extension
 

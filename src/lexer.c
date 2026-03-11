@@ -193,6 +193,14 @@ Token lexer_string(Lexer *lexer) {
     /* Tanda petik buka wis di-advance dening lexer_scan_token */
 
     while (!lexer_is_at_end(lexer) && lexer_peek(lexer) != '"') {
+        if (lexer_peek(lexer) == '\\') {
+            /* Skip escaped character */
+            lexer_advance(lexer);
+            if (!lexer_is_at_end(lexer)) {
+                lexer_advance(lexer);
+                continue;
+            }
+        }
         if (lexer_peek(lexer) == '\n') {
             lexer->line++;
             lexer->column = 1;

@@ -490,12 +490,28 @@ static Expr *parse_primary(Parser *parser) {
         return make_literal_expr(jamet_float_new(value));
     }
     if (match(parser, TOKEN_STRING)) {
-        /* Remove quotes */
+        /* Remove quotes and process escape sequences */
         char *str = previous(parser)->lexeme;
-        size_t len = strlen(str) - 2;
-        char *value = (char *)malloc(len + 1);
-        strncpy(value, str + 1, len);
-        value[len] = '\0';
+        size_t raw_len = strlen(str) - 2;
+        char *value = (char *)malloc(raw_len + 1);
+        size_t j = 0;
+        for (size_t i = 1; i < strlen(str) - 1; i++) {
+            if (str[i] == '\\' && i + 1 < strlen(str) - 1) {
+                i++;
+                switch (str[i]) {
+                    case 'n': value[j++] = '\n'; break;
+                    case 't': value[j++] = '\t'; break;
+                    case 'r': value[j++] = '\r'; break;
+                    case '\\': value[j++] = '\\'; break;
+                    case '"': value[j++] = '"'; break;
+                    case '0': value[j++] = '\0'; break;
+                    default: value[j++] = '\\'; value[j++] = str[i]; break;
+                }
+            } else {
+                value[j++] = str[i];
+            }
+        }
+        value[j] = '\0';
         JametValue *jv = jamet_string_new(value);
         free(value);
         return make_literal_expr(jv);
@@ -564,10 +580,25 @@ static Expr *parse_primary(Parser *parser) {
                 Expr *key;
                 if (match(parser, TOKEN_STRING)) {
                     Token str_tok = *previous(parser);
-                    size_t len = strlen(str_tok.lexeme);
-                    char *raw = (char *)malloc(len - 1);
-                    strncpy(raw, str_tok.lexeme + 1, len - 2);
-                    raw[len - 2] = '\0';
+                    size_t slen = strlen(str_tok.lexeme);
+                    char *raw = (char *)malloc(slen);
+                    size_t rj = 0;
+                    for (size_t ri = 1; ri < slen - 1; ri++) {
+                        if (str_tok.lexeme[ri] == '\\' && ri + 1 < slen - 1) {
+                            ri++;
+                            switch (str_tok.lexeme[ri]) {
+                                case 'n': raw[rj++] = '\n'; break;
+                                case 't': raw[rj++] = '\t'; break;
+                                case 'r': raw[rj++] = '\r'; break;
+                                case '\\': raw[rj++] = '\\'; break;
+                                case '"': raw[rj++] = '"'; break;
+                                default: raw[rj++] = '\\'; raw[rj++] = str_tok.lexeme[ri]; break;
+                            }
+                        } else {
+                            raw[rj++] = str_tok.lexeme[ri];
+                        }
+                    }
+                    raw[rj] = '\0';
                     key = make_literal_expr(jamet_string_new(raw));
                     free(raw);
                 } else if (match(parser, TOKEN_IDENTIFIER)) {

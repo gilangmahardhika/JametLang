@@ -59,8 +59,8 @@ directories:
 	@mkdir -p $(BUILD_DIR)
 	@mkdir -p $(BIN_DIR)
 
-# LDFLAGS for readline and math
-LDFLAGS_CLI = -lreadline -lm
+# LDFLAGS for readline, math, threading
+LDFLAGS_CLI = -lreadline -lm -lpthread
 
 # Link CLI object files
 $(TARGET_CLI): $(OBJECTS_CLI)

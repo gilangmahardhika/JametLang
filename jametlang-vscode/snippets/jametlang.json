@@ -328,5 +328,90 @@
     "prefix": "ana_kunci",
     "body": ["ana_kunci(${1:map}, ${2:\"key\"})"],
     "description": "Check if map has key"
+  },
+  "Current Date": {
+    "prefix": "tanggal_saiki",
+    "body": ["variabel ${1:saiki} = tanggal_saiki();"],
+    "description": "Get current date as map"
+  },
+  "Format Date": {
+    "prefix": "format_tanggal",
+    "body": ["format_tanggal(${1:\"%Y-%m-%d %H:%M:%S\"})"],
+    "description": "Format date with strftime"
+  },
+  "Parse Date": {
+    "prefix": "parsing_tanggal",
+    "body": ["parsing_tanggal(${1:\"2025-01-15\"}, ${2:\"%Y-%m-%d\"})"],
+    "description": "Parse date string to timestamp"
+  },
+  "Sleep": {
+    "prefix": "turu",
+    "body": ["turu(${1:1000});"],
+    "description": "Sleep for milliseconds"
+  },
+  "Hash SHA256": {
+    "prefix": "hash_sha256",
+    "body": ["variabel ${1:hash} = hash_sha256(${2:\"data\"});"],
+    "description": "SHA256 hash"
+  },
+  "HMAC SHA256": {
+    "prefix": "hmac_sha256",
+    "body": ["variabel ${1:hmac} = hmac_sha256(${2:\"key\"}, ${3:\"data\"});"],
+    "description": "HMAC-SHA256"
+  },
+  "Base64 Encode": {
+    "prefix": "base64_encode",
+    "body": ["base64_encode(${1:\"data\"})"],
+    "description": "Base64 encode string"
+  },
+  "Base64 Decode": {
+    "prefix": "base64_decode",
+    "body": ["base64_decode(${1:\"encoded\"})"],
+    "description": "Base64 decode string"
+  },
+  "JSON Parse": {
+    "prefix": "json_parsing",
+    "body": ["variabel ${1:obj} = json_parsing(${2:json_str});"],
+    "description": "Parse JSON string to value"
+  },
+  "JSON Format": {
+    "prefix": "json_format",
+    "body": ["variabel ${1:str} = json_format(${2:value});"],
+    "description": "Format value to JSON string"
+  },
+  "CSV Parse": {
+    "prefix": "csv_parsing",
+    "body": ["variabel ${1:rows} = csv_parsing(${2:csv_str});"],
+    "description": "Parse CSV string to array"
+  },
+  "CSV Format": {
+    "prefix": "csv_format",
+    "body": ["variabel ${1:str} = csv_format(${2:data});"],
+    "description": "Format array to CSV string"
+  },
+  "TCP Connect": {
+    "prefix": "soket_tcp",
+    "body": ["variabel ${1:fd} = soket_tcp(${2:\"localhost\"}, ${3:8080});"],
+    "description": "Connect TCP socket"
+  },
+  "TCP Server": {
+    "prefix": "soket_server",
+    "body": ["variabel ${1:server} = soket_server(${2:8080});"],
+    "description": "Create TCP server socket"
+  },
+  "Socket Send": {
+    "prefix": "soket_kirim",
+    "body": ["soket_kirim(${1:fd}, ${2:\"data\"});"],
+    "description": "Send data on socket"
+  },
+  "Socket Receive": {
+    "prefix": "soket_tampa",
+    "body": ["variabel ${1:data} = soket_tampa(${2:fd});"],
+    "description": "Receive data from socket"
+  },
+  "Socket Close": {
+    "prefix": "soket_tutup",
+    "body": ["soket_tutup(${1:fd});"],
+    "description": "Close socket"
   }
 }

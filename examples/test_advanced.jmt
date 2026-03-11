@@ -1,0 +1,164 @@
+// Test Advanced Features: DateTime, Crypto, Serialization, Networking, Concurrency
+
+// ==================== DateTime ====================
+nyerat("=== DateTime ===");
+
+variabel saiki = tanggal_saiki();
+nyerat("Tanggal saiki: " + saiki);
+nyerat("Taun: " + saiki["taun"]);
+nyerat("Sasi: " + saiki["sasi"]);
+nyerat("Dina: " + saiki["dina"]);
+nyerat("Jam: " + saiki["jam"] + ":" + saiki["menit"] + ":" + saiki["detik"]);
+
+// Format tanggal
+variabel formatted = format_tanggal("%Y-%m-%d %H:%M:%S");
+nyerat("Formatted: " + formatted);
+
+variabel formatted2 = format_tanggal("%A, %d %B %Y");
+nyerat("Formatted2: " + formatted2);
+
+// Wektu mili (milliseconds)
+variabel ms1 = wektu_mili();
+nyerat("Wektu mili: " + ms1);
+
+// Zona wektu
+variabel zona = zona_wektu();
+nyerat("Zona wektu: " + zona);
+
+// Beda wektu
+variabel ts1 = wektu();
+variabel ts2 = ts1 + 3600;
+nyerat("Beda 1 jam: " + beda_wektu(ts2, ts1) + " detik");
+
+// Parsing tanggal
+variabel parsed = parsing_tanggal("2025-01-15", "%Y-%m-%d");
+nyerat("Parsed timestamp: " + parsed);
+variabel back = format_tanggal("%Y-%m-%d", parsed);
+nyerat("Back to string: " + back);
+
+// Turu (sleep)
+nyerat("Turu 100ms...");
+variabel before = wektu_mili();
+turu(100);
+variabel after = wektu_mili();
+nyerat("Elapsed: " + (after - before) + "ms");
+
+// ==================== Crypto & Hashing ====================
+nyerat("");
+nyerat("=== Crypto & Hashing ===");
+
+variabel teks = "Halo JametLang!";
+nyerat("Teks: " + teks);
+
+variabel md5 = hash_md5(teks);
+nyerat("MD5: " + md5);
+
+variabel sha1 = hash_sha1(teks);
+nyerat("SHA1: " + sha1);
+
+variabel sha256 = hash_sha256(teks);
+nyerat("SHA256: " + sha256);
+
+variabel sha512 = hash_sha512(teks);
+nyerat("SHA512: " + sha512);
+
+// HMAC
+variabel hmac = hmac_sha256("kunci_rahasia", teks);
+nyerat("HMAC-SHA256: " + hmac);
+
+// Base64
+variabel encoded = base64_encode("Hello, World!");
+nyerat("Base64 encode: " + encoded);
+
+variabel decoded = base64_decode(encoded);
+nyerat("Base64 decode: " + decoded);
+
+// Verify roundtrip
+variabel data = "JametLang iku apik banget!";
+variabel rt_encoded = base64_encode(data);
+variabel rt_decoded = base64_decode(rt_encoded);
+nyerat("Roundtrip: " + (data == rt_decoded));
+
+// ==================== Serialization (JSON) ====================
+nyerat("");
+nyerat("=== JSON Serialization ===");
+
+// JSON format (stringify)
+variabel obj = {
+    "nama": "Budi",
+    "umur": 25,
+    "hobi": ["coding", "gaming", "membaca"],
+    "aktif": bener
+};
+variabel json_str = json_format(obj);
+nyerat("JSON format: " + json_str);
+
+// JSON parsing
+variabel json_input = "{\"nama\":\"Siti\",\"umur\":30,\"kota\":\"Jakarta\",\"skor\":[95,87,92]}";
+variabel parsed_obj = json_parsing(json_input);
+nyerat("Parsed: " + parsed_obj);
+nyerat("Nama: " + parsed_obj["nama"]);
+nyerat("Umur: " + parsed_obj["umur"]);
+nyerat("Kota: " + parsed_obj["kota"]);
+nyerat("Skor: " + parsed_obj["skor"]);
+
+// Nested JSON
+variabel nested = "{\"data\":{\"users\":[{\"id\":1,\"name\":\"Alice\"},{\"id\":2,\"name\":\"Bob\"}]}}";
+variabel parsed_nested = json_parsing(nested);
+nyerat("Nested: " + parsed_nested);
+
+// JSON roundtrip
+variabel original = {"key": "value", "num": 42, "arr": [1, 2, 3], "bool": bener};
+variabel json_out = json_format(original);
+variabel roundtrip = json_parsing(json_out);
+nyerat("Roundtrip JSON: " + json_format(roundtrip));
+
+// ==================== Serialization (CSV) ====================
+nyerat("");
+nyerat("=== CSV Serialization ===");
+
+// CSV format
+variabel csv_data = [
+    ["Nama", "Umur", "Kota"],
+    ["Budi", "25", "Surabaya"],
+    ["Siti", "30", "Jakarta"],
+    ["Ani", "22", "Bandung"]
+];
+variabel csv_str = csv_format(csv_data);
+nyerat("CSV format:");
+nyerat(csv_str);
+
+// CSV parsing
+variabel csv_input = "nama,umur,kota\nAlice,25,NYC\nBob,30,LA\nCharlie,35,SF";
+variabel csv_parsed = csv_parsing(csv_input);
+nyerat("CSV parsed rows: " + panjang(csv_parsed));
+saben (variabel row : csv_parsed) {
+    nyerat("  Row: " + row);
+}
+
+// CSV with custom delimiter
+variabel tsv = "nama\tumur\tkota\nDewi\t28\tSolo";
+variabel tsv_parsed = csv_parsing(tsv, "\t");
+nyerat("TSV parsed: " + tsv_parsed);
+
+// ==================== Concurrency ====================
+nyerat("");
+nyerat("=== Concurrency ===");
+
+// Gawe tugas (create task)
+variabel tugas_id = gawe_tugas();
+nyerat("Tugas ID: " + tugas_id);
+
+// Enteni (wait)
+variabel hasil = enteni_tugas(tugas_id);
+nyerat("Hasil tugas: " + hasil);
+nyerat("Tugas rampung? " + tugas_rampung(tugas_id));
+
+// Mutex
+kunci_mutex();
+nyerat("Mutex locked");
+buka_mutex();
+nyerat("Mutex unlocked");
+
+nyerat("");
+nyerat("=== Kabeh test rampung! ===");

@@ -89,7 +89,7 @@
       "patterns": [
         {
           "name": "support.function.builtin.jametlang",
-          "match": "\\b(nyerat|tulung|moco|panjang|potong|huruf_gedhe|huruf_cilik|ganti|ngandhut|pisah|mutlak|pangkat|akar|acak|bulatke|lantai|langit|sisa|dadi_angka|dadi_desimal|dadi_teks|jinis|wektu|tambah|hapus|gabung|balik|urutke|irisan|indeks|baca_file|tulis_file|tambah_file|ana_file|http_get|http_post|kunci_map|nilai_map|ana_kunci)\\b"
+          "match": "\\b(nyerat|tulung|moco|panjang|potong|huruf_gedhe|huruf_cilik|ganti|ngandhut|pisah|mutlak|pangkat|akar|acak|bulatke|lantai|langit|sisa|dadi_angka|dadi_desimal|dadi_teks|jinis|wektu|tambah|hapus|gabung|balik|urutke|irisan|indeks|baca_file|tulis_file|tambah_file|ana_file|http_get|http_post|kunci_map|nilai_map|ana_kunci|tanggal_saiki|format_tanggal|parsing_tanggal|wektu_mili|turu|zona_wektu|beda_wektu|gawe_tugas|enteni_tugas|tugas_rampung|kunci_mutex|buka_mutex|soket_tcp|soket_kirim|soket_tampa|soket_tutup|soket_server|soket_terima|hash_md5|hash_sha1|hash_sha256|hash_sha512|hmac_sha256|base64_encode|base64_decode|json_parsing|json_format|csv_parsing|csv_format)\\b"
         }
       ]
     },
