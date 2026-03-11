@@ -13,6 +13,8 @@ JametLang is a programming language that uses Bahasa Jawa (Javanese language) sy
 | `string`  | Teks (text)                     |
 | `boolean` | Bener/Salah (True/False)        |
 | `array`   | Kumpulan data (collection)      |
+| `map`     | HashMap/Dictionary (key-value)  |
+| `fungsi`  | Lambda/Function reference       |
 | `kosong`  | Null/None value                 |
 
 ## Tembung Kunci (Keywords)
@@ -36,9 +38,13 @@ JametLang is a programming language that uses Bahasa Jawa (Javanese language) sy
 | `lan`       | and         | Logika AND         |
 | `utawa`     | or          | Logika OR          |
 | `ora`       | not         | Logika NOT         |
-| `kelas`     | class       | Kelas              |
-| `anyar`     | new         | Anyar object       |
-| `piwulang`  | extends     | Pewarisan          |
+| `jancuk`    | try         | Exception handling |
+| `awas`      | catch       | Tangkep exception  |
+| `rampungke` | finally     | Blok pungkasan     |
+| `uncal`     | throw       | Lempar exception   |
+| `saben`     | forEach     | Iterasi array/map  |
+| `jupuk`     | import      | Import modul       |
+| `kirim`     | export      | Export fungsi      |
 
 ## Operators
 
@@ -53,8 +59,12 @@ JametLang is a programming language that uses Bahasa Jawa (Javanese language) sy
 | `!=`     | Beda (not equal)           |
 | `>`      | Lebih besik (greater than) |
 | `<`      | Lebih ciyut (less than)    |
+| `>=`     | Lebih sama (greater equal) |
+| `<=`     | Kurang sama (less equal)   |
 | `+=`     | Plus sama (add assign)     |
 | `-=`     | Minus sama (sub assign)    |
+| `++`     | Increment                  |
+| `--`     | Decrement                  |
 
 ## Komentar (Comments)
 
@@ -228,7 +238,10 @@ JametLang/
 │   ├── test_stdlib.jmt  # Test standard library
 │   ├── test_array.jmt   # Test array operations
 │   ├── test_exception.jmt # Test exception handling
-│   └── test_simple.jmt  # Test sederhana
+│   ├── test_features.jmt  # Test new features (operators, lambda, map, etc.)
+│   ├── test_module.jmt    # Test module system (jupuk/kirim)
+│   ├── math_module.jmt    # Example module file
+│   └── test_simple.jmt    # Test sederhana
 ├── jametlang-vscode/    # VSCode Extension
 │   ├── syntaxes/        # TextMate grammar
 │   ├── snippets/        # Code snippets
@@ -255,6 +268,14 @@ JametLang/
 - **Standard Library** — Fungsi bawaan kanggo string, matematika, konversi, lan utilitas
 - **Array** — `[1, 2, 3]`, akses `arr[i]`, assignment `arr[i] = val`, negative index
 - **Exception Handling** — `jancuk`/`awas`/`rampungke` (try/catch/finally), `uncal` (throw)
+- **Comparison** — `>=` (lebih sama) lan `<=` (kurang sama)
+- **Increment/Decrement** — `x++` lan `x--`
+- **forEach** — `saben (variabel item : arr) { ... }`
+- **Lambda** — `variabel fn = fungsi(x) { balekno x * 2; };`
+- **HashMap/Map** — `{"key": value}`, akses `map["key"]`, iterasi karo `saben`
+- **File I/O** — `baca_file`, `tulis_file`, `tambah_file`, `ana_file`
+- **HTTP Client** — `http_get(url)`, `http_post(url, body)`
+- **Module System** — `jupuk` (import) / `kirim` (export)
 
 ## Standard Library
 
@@ -304,6 +325,30 @@ JametLang/
 | `irisan(arr, mulai, akhir)` | Potong array (slice) | `irisan([1,2,3,4], 1, 3)` → `[2,3]` |
 | `indeks(arr, val)` | Golek indeks elemen | `indeks([10,20,30], 20)` → `1` |
 
+### Fungsi Map
+
+| Fungsi | Keterangan | Conto |
+| ------ | ---------- | ----- |
+| `kunci_map(map)` | Entuk kabeh kunci | `kunci_map(m)` → `["a", "b"]` |
+| `nilai_map(map)` | Entuk kabeh nilai | `nilai_map(m)` → `[1, 2]` |
+| `ana_kunci(map, key)` | Cek kunci ana | `ana_kunci(m, "a")` → `bener` |
+
+### File I/O
+
+| Fungsi | Keterangan | Conto |
+| ------ | ---------- | ----- |
+| `baca_file(path)` | Maca file dadi string | `baca_file("data.txt")` |
+| `tulis_file(path, isi)` | Tulis file (overwrite) | `tulis_file("out.txt", "halo")` |
+| `tambah_file(path, isi)` | Tambah ing file (append) | `tambah_file("log.txt", "baris")` |
+| `ana_file(path)` | Cek file ana | `ana_file("data.txt")` → `bener` |
+
+### HTTP Client
+
+| Fungsi | Keterangan | Conto |
+| ------ | ---------- | ----- |
+| `http_get(url)` | HTTP GET request | `http_get("https://api.example.com")` |
+| `http_post(url, body, type)` | HTTP POST request | `http_post(url, data, "application/json")` |
+
 ### Utilitas
 
 | Fungsi | Keterangan | Conto |
@@ -333,6 +378,132 @@ variabel arr = [];
 kanggo (variabel i = 0; i < 5; i = i + 1) {
     arr = tambah(arr, i);
 }
+```
+
+## Operator Anyar
+
+```jmt
+// >= dan <=
+nyerat(5 >= 3);    // bener
+nyerat(3 <= 5);    // bener
+
+// ++ dan --
+variabel x = 10;
+x++;               // x = 11
+x--;               // x = 10
+
+// Ing loop
+kanggo (variabel i = 0; i < 5; i++) {
+    nyerat(i);
+}
+```
+
+## forEach (saben)
+
+```jmt
+// Iterasi array
+variabel arr = [10, 20, 30];
+saben (variabel item : arr) {
+    nyerat(item);
+}
+
+// Iterasi map (kunci)
+variabel m = {"a": 1, "b": 2};
+saben (variabel kunci : m) {
+    nyerat(kunci + " = " + m[kunci]);
+}
+```
+
+## Lambda Functions
+
+```jmt
+// Lambda sederhana
+variabel kali_dua = fungsi(x) {
+    balekno x * 2;
+};
+nyerat(kali_dua(5));   // 10
+
+// Lambda karo pirang-pirang parameter
+variabel jumlah = fungsi(a, b) {
+    balekno a + b;
+};
+nyerat(jumlah(3, 4));  // 7
+```
+
+## HashMap / Map
+
+```jmt
+// Map literal
+variabel orang = {
+    "nama": "Budi",
+    "umur": 25,
+    "kota": "Surabaya"
+};
+
+// Akses karo kunci
+nyerat(orang["nama"]);   // Budi
+
+// Assignment kunci
+orang["umur"] = 26;
+
+// Map helpers
+nyerat(kunci_map(orang));          // ["nama", "umur", "kota"]
+nyerat(ana_kunci(orang, "nama"));  // bener
+nyerat(panjang(orang));            // 3
+```
+
+## File I/O
+
+```jmt
+// Tulis file
+tulis_file("output.txt", "Halo saka JametLang!");
+
+// Baca file
+variabel isi = baca_file("output.txt");
+nyerat(isi);
+
+// Tambah (append)
+tambah_file("output.txt", "\nBaris anyar");
+
+// Cek file ana
+nyerat(ana_file("output.txt"));  // bener
+```
+
+## HTTP Client
+
+```jmt
+// HTTP GET
+variabel response = http_get("https://httpbin.org/get");
+nyerat(response);
+
+// HTTP POST
+variabel data = '{"name": "JametLang"}';
+variabel result = http_post("https://httpbin.org/post", data, "application/json");
+nyerat(result);
+```
+
+## Module System (jupuk / kirim)
+
+JametLang nggunakake sistem modul Go-like karo `jupuk` (import) lan `kirim` (export).
+
+```jmt
+// math_module.jmt
+kirim fungsi kuadrat(x) {
+    balekno x * x;
+}
+
+kirim fungsi faktorial(n) {
+    nek (n <= 1) { balekno 1; }
+    balekno n * faktorial(n - 1);
+}
+```
+
+```jmt
+// main.jmt
+jupuk "math_module.jmt";
+
+nyerat(kuadrat(5));      // 25
+nyerat(faktorial(10));   // 3628800
 ```
 
 ## Exception Handling
@@ -389,6 +560,14 @@ uncal 3.14;             // float
 - [x] Standard Library (string, math, konversi, utilitas)
 - [x] Array Operations (literal, index, assignment, stdlib functions)
 - [x] Exception Handling (`jancuk`/`awas`/`rampungke`, `uncal`)
+- [x] Comparison Operators (`>=`, `<=`)
+- [x] Increment/Decrement (`++`, `--`)
+- [x] forEach Loop (`saben`) — iterasi array lan map
+- [x] Lambda/Anonymous Functions — closure scope
+- [x] HashMap/Map Data Type — `{key: val}`, index, iterasi
+- [x] File I/O — `baca_file`, `tulis_file`, `tambah_file`, `ana_file`
+- [x] HTTP Client — `http_get`, `http_post` (via curl)
+- [x] Module System — `jupuk` (import) / `kirim` (export)
 
 ## VSCode Extension
 
